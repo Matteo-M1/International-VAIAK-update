@@ -20,7 +20,8 @@ library(tidyr)
 library(ggiraph) # interactive plot
 library(htmlwidgets) # interaction online
 library(ggplot2)
-library(rnaturalearth) # world map
+library(sf) # world map
+library(patchwork)
 ```
 
 # Introduction
@@ -125,7 +126,7 @@ data_ak = data %>%
 ```{r}
 
 data_ak_participant = data_ak %>%
-count(ID_Database, name = "n")
+  count(ID_Database, name = "n")
 
 graph_ak = ggplot(data_ak_participant, aes(y = n, x = reorder(ID_Database, n),
                                 tooltip = paste0(ID_Database, ": ", n), 
@@ -146,6 +147,61 @@ graph_ak = ggplot(data_ak_participant, aes(y = n, x = reorder(ID_Database, n),
 
 girafe(ggobj = graph_ak) 
 
+```
+
+
+```{r}
+
+world_sf = read_sf("https://raw.githubusercontent.com/holtzy/R-graph-gallery/master/DATA/world.geojson")
+
+data_ak_country = data_ak %>%
+  count(Dem_Country, name = "n") %>%
+  filter(n>5)
+
+world_sf = world_sf %>%
+    filter(!name %in% c("Antarctica", "Greenland"))  %>%
+  left_join(data_ak_country, by = c("name" = "Dem_Country")) 
+
+graph_ak_country_1 = ggplot(world_sf, aes(
+  x = reorder(name, n),
+  y = n,
+  tooltip = name,
+  data_id = name,
+  fill = name)) +
+  geom_col_interactive(data = filter(world_sf, !is.na(n))) +
+  theme_minimal() +
+    coord_flip() + 
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+graph_ak_country_2 = ggplot() +
+  geom_sf(data = world_sf, fill = "lightgrey", color = "lightgrey") +
+  geom_sf_interactive(
+    data = filter(world_sf, !is.na(n)),
+    aes(fill = name,
+      tooltip = paste0(name, ":", n),
+      data_id = name)) +
+  coord_sf(crs = st_crs(3857)) +
+  theme_void() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+combined_ak_country = graph_ak_country_1 / graph_ak_country_2 + plot_layout(heights = c(2,2))
+
+interactive_plot = girafe(ggobj = combined_ak_country, 
+                            width_svg = 10, height_svg = 14)
+
+interactive_plot = girafe_options(
+  interactive_plot,
+  opts_hover(css = "fill:red;stroke:black;"))
+
+interactive_plot
 ```
 
 
