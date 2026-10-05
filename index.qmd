@@ -1,0 +1,152 @@
+---
+title: "International VAIAK"
+format: 
+  html: 
+    toc: true            # Table of content (Menu)
+    toc-depth: 3         # Level of headings 
+    toc-location: left   # Position 
+    toc-title: "Contents" # Name
+    page-layout: article
+execute:
+  echo: FALSE    
+  warning: FALSE
+  message: FALSE
+  output: TRUE
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggiraph) # interactive plot
+library(htmlwidgets) # interaction online
+library(ggplot2)
+library(rnaturalearth) # world map
+```
+
+# Introduction
+
+```{r, results='hide', fig.show='hide'}
+
+data = read.csv("International_vaiak.csv")
+
+```
+
+A total of 68 datasets were collected. The number of participants, languages, etc. depend on which scale we are analysing. Thus, the presentation will be divided into three parts:
+
+-   Art Interest, where only the participants that have answered to all the AI items are selected
+
+-   Art Knowleedge, where only the participants that have answered to all the Part B items (given that it is expected to have empty Part C items) are selected
+
+-   Full scale, where participants that completed correctly the both scales are presented
+
+This first presentation is just to understand the number of participants for each of the different variables
+
+# Art Interest
+
+This is the number of participants divided for the datasets. 
+
+```{r, results='hide', fig.show='hide'}
+
+data_ai = data %>%
+    filter(
+      if_all(AI_1_1:AI_2_4, ~ !is.na(.x))) %>%
+  mutate(
+    ID_Database = factor(ID_Database))
+
+```
+
+```{r}
+
+data_ai_participant = data_ai %>%
+count(ID_Database, name = "n")
+
+graph_ai = ggplot(data_ai_participant, aes(y = n, x = reorder(ID_Database, n),
+                                tooltip = paste0(ID_Database, ": ", n), 
+                                data_id = ID_Database)) +
+  geom_col_interactive(fill = "grey70",
+                        hover_css = "fill:#4A90E2; 
+                       stroke:#2C5D87; 
+                       stroke-width:1.5px;") +
+  coord_flip() + 
+  theme_minimal() +
+  labs(title = "Variable : Art Interrest")  +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+girafe(ggobj = graph_ai) 
+
+```
+
+This is the number of participants for settings
+
+```{r}
+
+data_ai_context = data_ai %>%
+  count(Sett_Context, name = "n")
+
+graph_ai = ggplot(data_ai_context, aes(y = n, x = reorder(Sett_Context, n),
+                                tooltip = paste0(Sett_Context, ": ", n), 
+                                data_id = Sett_Context)) +
+  geom_col_interactive(fill = "grey70",
+                        hover_css = "fill:#4A90E2; 
+                       stroke:#2C5D87; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+  labs(title = "Variable : Context in AI scale")  +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+girafe(ggobj = graph_ai) 
+```
+
+# Art Knowledge
+
+This is the number of participants divided for the datasets. 
+
+```{r, results='hide', fig.show='hide'}
+
+data_ak = data %>%
+    filter(
+      if_all(B1:B6, ~ !is.na(.x)) |
+        if_all(B1_Numeric:B6_Numeric, ~ !is.na(.x))) %>%
+  mutate(
+    ID_Database = factor(ID_Database))
+
+```
+
+```{r}
+
+data_ak_participant = data_ak %>%
+count(ID_Database, name = "n")
+
+graph_ak = ggplot(data_ak_participant, aes(y = n, x = reorder(ID_Database, n),
+                                tooltip = paste0(ID_Database, ": ", n), 
+                                data_id = ID_Database)) +
+  geom_col_interactive(fill = "grey70",
+                        hover_css = "fill:#4A90E2; 
+                       stroke:#2C5D87; 
+                       stroke-width:1.5px;") +
+  coord_flip() + 
+  theme_minimal() +
+  labs(title = "Variable : Art Knowledge")  +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+girafe(ggobj = graph_ak) 
+
+```
+
+
+
