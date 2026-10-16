@@ -32,17 +32,17 @@ data = read.csv("International_vaiak.csv")
 
 ```
 
-The VAIAK is composed by two scales, the Art Interest (AI) and the Art Knowledge (AK). The two scales measure two distinctive constructs, thus the analysis will be carry out separetely.
+The VAIAK is composed by two scales, the Art Interest (AI) and the Art Knowledge (AK). The two scales measure two distinctive constructs, thus the analysis will be carry out separately.
 
-The purpose of the study is to carry out analysis to observe the how the items and the scale more in general behave across multiple populations and contexts. Research analysing the VAIAK already exist, with multiple validations, IRT, CFA, etc. I created a folder with the paper (some where written in a different language so I translated them).
+The purpose of the study is to carry out analysis to observe how the items and the scale more in general behave across multiple populations and contexts.
 
-For each scale we have collected the following factors:
+For each scale we have collected different factors, including:
 
 -   Medium, e.g., computer, pen and paper, smartphone
 -   Setting, e.g., lab, museums, classrooms
 -   Country
 -   Languages
--   Expertise, two levels lay people and experts. The past CFA analysis show a different results between the levels fo the factor, which can be important if we find difference in the Multigroup CFA for the other factors (Medium, setting), because we do not have equal samples of experts across those.
+-   Expertise, two levels lay people and experts. The past CFA analysis show a different results between the levels for the factor, which can be important if we find difference in the multigroup CFA for the other factors (Medium, setting), because we do not have equal samples of experts across those.
 
 # Art Interest
 
@@ -54,31 +54,27 @@ Only participants who have completed the complete scale are taken into account.
 
 data_ai = data %>%
     filter(
-      if_all(AI_1_1:AI_2_4, ~ !is.na(.x))) %>%
-  mutate(
-    ID_Database = factor(ID_Database))
+      if_all(AI_1_1:AI_2_4, ~ !is.na(.x)))
 
 ```
 
 ## General analysis
 
-The total number fo entries is 14747. For the total sample I plan two series of analysis:
+The total number of entries is 15452 For the total sample I plan two series of analysis:
 
 -   Internal consistency with McDonald omega
 
--   I do not plan to carry out an EFA. This is because a tested theoretical model is already present in the literature. In line with the recomendation from Henson and Robert (2006): "When prior theory exists regarding the structure of the data, CFA should be considered as an alternative to EFA"
+-   I do not plan to carry out an EFA. This is because a tested theoretical model is already present in the literature. In line with the recommendation from Henson and Robert (2006): "When prior theory exists regarding the structure of the data, CFA should be considered as an alternative to EFA"
 
--   CFA, given that we are talking about a 7 points-Likerts scale, we will adopt the robust maximum likelihood estimator (MLR) as a estimation method. I would proposed a one-factor model, what the theory expect, but also a two-factor model, with items divided the scale into the subjective_interest and behavioral_interest. This is because from my prior analysis (of the Italian data set) and the prior CFA from Specker (2024) the behavioral_interest present high correlation residuals. An alternative (and an open question) is whether to carry out the analysis with the "corrected" model, with the additional correlation residuals (following image). The correlations have already been observed in Specker (2024) and the Italian validation and have reasonable theoretical explanations.
+-   CFA, given that we are talking about a 7 points-Likert scale, we will adopt the robust maximum likelihood estimator (MLR) as a estimation method. I would proposed a one-factor model, what the theory expect, but also a two-factor model, with items divided the scale into the subjective_interest and behavioral_interest. This is because from my prior analysis (of the Italian data set) and the prior CFA from Specker (2024) the behavioral_interest present high correlation residuals. An alternative (and an open question) is whether to carry out the analysis with the "corrected" model, with the additional correlation residuals (following image). The correlations have already been observed in Specker (2024) and the Italian validation and have reasonable theoretical explanations.
 
-    ```         
-      ![](images/Art interest model.png){width="33%"}
-    ```
+    ![](images/Art%20interest%20model.png){width="50%"}
 
--   IRT, adopting a graded response model (GRM)
+-   IRT, adopting a graded response model (GRM). I would also be interested in checking how much the latent construct classically measure and the one where each item is weighted differently based on the difficulties, like it is done in Gross et al., (2019)
 
 ## Multigroup analysis
 
-For the differnt factors I plan to carry out Multigroup CFA to check if we can ensure equivalence across the mediums, settings, languages and countries. For each factor I present the number of levels and the participants.
+For the different factors I plan to carry out multigroup CFA to check if we can ensure equivalence across the mediums, settings, languages and countries. For each factor I present the number of levels and the participants.
 
 ### Medium
 
@@ -92,7 +88,7 @@ graph_ai = ggplot(data_ai_medium, aes(y = n, x = reorder(Sett_Medium, n),
                                 tooltip = paste0(Sett_Medium, ": ", n), 
                                 data_id = Sett_Medium)) +
   geom_col_interactive(fill = "grey70",
-                        hover_css = "fill:#ff193b; 
+                        hover_css = "fill:#009b64; 
                        stroke:black; 
                        stroke-width:1.5px;") +
   theme_minimal() +
@@ -163,9 +159,7 @@ girafe(ggobj = graph_ai)
 
 ### Country of origin
 
-Across the country it may be argue that people inside the less industrialised countries do not have the same access to art activities. However from the sample we do not have enough participants from non-industrialised countries.
-
-The following map represents only the country with at least 5 participants.
+As can be seen, there are many countries that do not reach an adequate number for the analysis. 
 
 ```{r}
 
@@ -173,8 +167,61 @@ world_sf = read_sf("https://raw.githubusercontent.com/holtzy/R-graph-gallery/mas
 
 data_ai_country = data_ai %>%
   count(Dem_Country, name = "n") %>%
-  filter(n>5) %>%
   filter(!is.na(Dem_Country))
+
+data_ai_country = data_ai_country %>%
+  mutate(
+  group = case_when(
+    Dem_Country %in% c("Canada", "United States of America") ~ "North America",  
+    
+    Dem_Country %in% c("Mexico", "Costa Rica", "Cuba", "The Bahamas",
+                       "Barbados", "Trinidad and Tobago") ~ "Central America and Caribbean",  
+    
+    Dem_Country %in% c("Brazil", "Argentina", "Chile", "Peru", 
+                       "Bolivia", "Venezuela", "Uruguay", "Colombia", 
+                       "Ecuador") ~ "South America",
+    
+    Dem_Country %in% c("Finland", "Sweden", "Norway", "Estonia", "Latvia",
+                       "Lithuania", "Denmark", "Ireland") ~ "North Europe",
+    
+    Dem_Country %in% c("Portugal", "France", "Germany", "Netherlands",
+                       "Switzerland", "Luxembourg") ~ "West Europe",
+    
+    Dem_Country %in% c("Bulgaria", "Russia", "Belarus", "Romania", "Hungary", "Moldova", "Poland",
+                       "Ukraine", "Slovakia") ~ "East Europe",
+    
+    Dem_Country %in% c("Albania", "Bosnia and Hrz.", "Greece", "Montenegro", "Bosnia and Herz.",
+                        "Portugal", "Serbia", "Slovenia", "North Macedonia", "Croatia") ~ "South Europe",
+    
+    Dem_Country %in% c("Azerbaijan", "Israel", "Kuwait", "Lebanon", "Qatar","Saudi Arabia", 
+                       "Turkey", "Armenia", "Georgia") ~ "West Asia",
+    
+    Dem_Country %in% c("Kyrgyzstan", "Kazakhstan") ~ "Central Asia",
+    
+    Dem_Country %in% c("Bangladesh", "India", "Sri Lanka", "Iran", "Nepal", 
+                       "Pakistan") ~ "Southern Asia",
+    
+    Dem_Country %in% c("Indonesia", "Malaysia", "Vietnam", 
+                       "Singapore", "Philippines") ~ "South-eastern Asia",
+    
+    Dem_Country %in% c("Japan", "China", "South Korea", "Taiwan", "Hong Kong") ~ "East Asia",
+    
+    Dem_Country %in% c("Australia", "New Zealand") ~ "Australia and New Zealand",
+    
+    Dem_Country %in% c("Algeria", "Tunisia", "Egypt") ~ "Northern Africa",
+    
+    Dem_Country %in% c("South Africa") ~ "Southern Africa",
+    
+    Dem_Country %in% c("Nigeria") ~ "Western Africa",
+    
+    Dem_Country %in% c("Zimbabwe", "Malawi", "Kenya", "Uganda") ~ "Eastern Africa",  
+    
+    Dem_Country %in% c("", NA) ~ "NA",  
+
+    TRUE ~ Dem_Country)) %>%
+  group_by(group) %>%
+  mutate(n_group = sum(n, na.rm = TRUE)) %>%
+  ungroup()
 
 world_sf = world_sf %>%
     filter(!name %in% c("Antarctica", "Greenland"))  %>%
@@ -188,14 +235,13 @@ graph_ai_country_1 = ggplot(world_sf, aes(
   fill = "gray70")) +
   geom_col_interactive(data = filter(world_sf, !is.na(n)), 
                        fill = "gray70",
-                        hover_css = "fill:#f20089; 
+                        hover_css = "fill:#black; 
                        stroke:black; 
                        stroke-width:1.5px;") +
   theme_minimal() +
-    coord_flip() + 
   theme(
-    axis.text.y = element_blank(),
-    axis.ticks.y = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     legend.position = "none")
@@ -226,9 +272,66 @@ interactive_plot = girafe_options(
 interactive_plot
 ```
 
+So I cluster the countries based on the UN M49 sub-regions. I kept separated the countries that had at least 200 participants, which is the general rule of thumb minimum for the CFA. 
+I would keep this rule and consider only the group with at least 200 participants. I do not want to create groups geographically too big (e.g., the all Africa), because I do not think that would make sense to consider it as an entire group. 
+
+I wanted to ask if to create this cluster would make sense to carry out an analysis to check if the countries can be grouped together. The only one that I can think of is the CFA, but that would defeat the purpose of the grouping. 
+
+
+```{r}
+
+data_ai_group = data_ai_country %>%
+  distinct(group, n_group) %>%
+  filter(!group == "NA")
+
+graph_ai_country_1 = ggplot(data_ai_group, aes(
+  x = reorder(group, n_group),
+  y = n_group,
+  tooltip = paste0(group, ":", n_group),
+  data_id = group,
+  fill = group)) +
+  geom_col_interactive(data = filter(data_ai_group, !is.na(n)), 
+                       fill = "gray70",
+                        hover_css = "fill:#f20089; 
+                       stroke:black; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+graph_ai_country_2 = ggplot() +
+  geom_sf(data = world_sf, fill = "lightgrey", color = "lightgrey") +
+    geom_sf_interactive(
+      data = filter(world_sf, !is.na(n)),
+    aes(tooltip = paste0(name, ":", n), 
+        data_id = group), 
+        fill = "gray70") +
+  coord_sf(crs = st_crs(3857)) +
+  theme_void() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+combined_ai_country = graph_ai_country_1 / graph_ai_country_2 + plot_layout(heights = c(2,2))
+
+interactive_plot = girafe(ggobj = combined_ai_country, 
+                            width_svg = 10, height_svg = 14)
+
+interactive_plot = girafe_options(
+  interactive_plot,
+  opts_hover(css = "fill:red;stroke:black;"))
+
+interactive_plot
+```
+
 ### Expertise
 
-As sad before, the above factors have unequal amount of experts and lay people, and the different in the Multigroup CFA may also be explained by the expertise factor, which have already shown to lead to difference in the factor loadings.
+As said before, the above factors have unequal amount of experts and lay people, and the different in the multigroup CFA may also be explained by the expertise factor, which have already shown to lead to difference in the factor loadings.
 
 ```{r}
 
@@ -255,8 +358,317 @@ graph_ai = ggplot(data_ai_expertise, aes(y = n, x = reorder(ArtExp_Expertise_clu
 girafe(ggobj = graph_ai) 
 ```
 
+# Art Knowledge
+
+Art Knowledge (AK) includes 26 items, divided into two parts. In part B (6 items) each item contains an artwork, a question about the image and four possible answers, of which only one is correct. The theme of the questions varies from iconography to techniques and materials. In part C there are 10 images, for each the participant is asked to write the name of the artist and the style (total 26 items).
+
+Only participants who have completed the complete part B are taken into account.
+
+```{r, results='hide', fig.show='hide'}
+
+data_ak = data %>%
+    filter(
+      if_all(B1_Numeric:B6_Numeric, ~ !is.na(.x))) %>%
+  mutate(
+    ID_Database = factor(ID_Database))
+
+```
+
+## General analysis
+
+The total number fo entries is 7092. For the total sample I plan the same analysis as above, with some changes: 
+
+-   McDonald omega
+
+-   CFA, given that we are talking about a scale where each can be right (1) or wrong (0) I would adopt the WLSMV as an estimator.
+
+-   IRT, the probability to correctly answers in part B and C differ. In part B I think is best to use a 3 parameters model (3PL), where I can keep into consideration that participant can guess the correct answers (1 in 4 possibilities). In part C will use the 2-parameters model (2PL). In the prior validation it was notice that, across all items, participants often tried to guess the answer the name of artist, by writing famous artists name (e.g., Picasso, Leonardo da Vinci, etc.). In particular a list of 7 artists was created. I think a deeper analysis that keep into consideration this aspect may be interesting, although I am not sure how to implement it. 
+
+## Multigroup analysis
+
+For the different factors I plan to carry out multigroup CFA to check if we can ensure equivalence across the mediums, settings, languages and countries. For each factor I present the number of levels and the participants.
+
+### Medium
+
+```{r}
+
+data_ak_medium = data_ak %>%
+  count(Sett_Medium, name = "n") %>%
+  filter(!is.na(Sett_Medium))
+
+graph_ak = ggplot(data_ak_medium, aes(y = n, x = reorder(Sett_Medium, n),
+                                tooltip = paste0(Sett_Medium, ": ", n), 
+                                data_id = Sett_Medium)) +
+  geom_col_interactive(fill = "grey70",
+                        hover_css = "fill:#009b64; 
+                       stroke:black; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+  labs(title = "Variable : Medium in AK scale")  +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+girafe(ggobj = graph_ak) 
+```
+
+### Settings
+
+For the settings I would like to study in greater detail whether the VAIAK done online was "easier". This is because by seeing certain results on Prolific I believe that people cheat, by checking the correct answers online. This is particular evident in item such as the  Giotto's fresco, one with, which is one of the hardest, which sometimes is answered with the full name "Giotto di Bondone", which is very unsual. Personally I would explore the frequency of presence of this specific answers (written in that specific way) in the Online vs Museum/lab studies to see if it is more common. Maybe it could also be helpful to check if the difficulties of the hardest items differ using the IRT. 
+
+```{r}
+
+data_ak_context = data_ak %>%
+  count(Sett_Context, name = "n") %>%
+  filter(!is.na(Sett_Context))
+
+graph_ak = ggplot(data_ak_context, aes(y = n, x = reorder(Sett_Context, n),
+                                tooltip = paste0(Sett_Context, ": ", n), 
+                                data_id = Sett_Context)) +
+  geom_col_interactive(fill = "gray70",
+                        hover_css = "fill:#ff193b; 
+                       stroke:black; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+  labs(title = "Variable : Context in ak scale")  +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+girafe(ggobj = graph_ak) 
+```
+
+### Languages
+
+```{r}
+
+data_ak_language = data_ak %>%
+  count(Sett_Language, name = "n") %>%
+  filter(!is.na(Sett_Language))
+
+graph_ak = ggplot(data_ak_language, aes(y = n, x = reorder(Sett_Language, n),
+                                tooltip = paste0(Sett_Language, ": ", n), 
+                                data_id = Sett_Language)) +
+  geom_col_interactive(fill = "gray70",
+                        hover_css = "fill:#ffb600; 
+                       stroke:black; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+  labs(title = "Variable : Language in ak scale")  +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+girafe(ggobj = graph_ak) 
+```
+
+### Country of origin
+
+```{r}
+
+world_sf = read_sf("https://raw.githubusercontent.com/holtzy/R-graph-gallery/master/DATA/world.geojson")
+
+data_ak_country = data_ai %>%
+  count(Dem_Country, name = "n") %>%
+  filter(!is.na(Dem_Country))
+
+data_ak_country = data_ak_country %>%
+  mutate(
+  group = case_when(
+    Dem_Country %in% c("Canada", "United States of America") ~ "North America",  
+    
+    Dem_Country %in% c("Mexico", "Costa Rica", "Cuba", "The Bahamas",
+                       "Barbados", "Trinidad and Tobago") ~ "Central America and Caribbean",  
+    
+    Dem_Country %in% c("Brazil", "Argentina", "Chile", "Peru", 
+                       "Bolivia", "Venezuela", "Uruguay", "Colombia", 
+                       "Ecuador") ~ "South America",
+    
+    Dem_Country %in% c("Finland", "Sweden", "Norway", "Estonia", "Latvia",
+                       "Lithuania", "Denmark", "Ireland") ~ "North Europe",
+    
+    Dem_Country %in% c("Portugal", "France", "Germany", "Netherlands",
+                       "Switzerland", "Luxembourg") ~ "West Europe",
+    
+    Dem_Country %in% c("Bulgaria", "Russia", "Belarus", "Romania", "Hungary", "Moldova", "Poland",
+                       "Ukraine", "Slovakia") ~ "East Europe",
+    
+    Dem_Country %in% c("Albania", "Bosnia and Hrz.", "Greece", "Montenegro", "Bosnia and Herz.",
+                        "Portugal", "Serbia", "Slovenia", "North Macedonia", "Croatia") ~ "South Europe",
+    
+    Dem_Country %in% c("Azerbaijan", "Israel", "Kuwait", "Lebanon", "Qatar","Saudi Arabia", 
+                       "Turkey", "Armenia", "Georgia") ~ "West Asia",
+    
+    Dem_Country %in% c("Kyrgyzstan", "Kazakhstan") ~ "Central Asia",
+    
+    Dem_Country %in% c("Bangladesh", "India", "Sri Lanka", "Iran", "Nepal", 
+                       "Pakistan") ~ "Southern Asia",
+    
+    Dem_Country %in% c("Indonesia", "Malaysia", "Vietnam", 
+                       "Singapore", "Philippines") ~ "South-eastern Asia",
+    
+    Dem_Country %in% c("Japan", "China", "South Korea", "Taiwan", "Hong Kong") ~ "East Asia",
+    
+    Dem_Country %in% c("Australia", "New Zealand") ~ "Australia and New Zealand",
+    
+    Dem_Country %in% c("Algeria", "Tunisia", "Egypt") ~ "Northern Africa",
+    
+    Dem_Country %in% c("South Africa") ~ "Southern Africa",
+    
+    Dem_Country %in% c("Nigeria") ~ "Western Africa",
+    
+    Dem_Country %in% c("Zimbabwe", "Malawi", "Kenya", "Uganda") ~ "Eastern Africa",  
+    
+    Dem_Country %in% c("", NA) ~ "NA",  
+
+    TRUE ~ Dem_Country)) %>%
+  group_by(group) %>%
+  mutate(n_group = sum(n, na.rm = TRUE)) %>%
+  ungroup()
+
+world_sf = world_sf %>%
+    filter(!name %in% c("Antarctica", "Greenland"))  %>%
+  left_join(data_ak_country, by = c("name" = "Dem_Country")) 
+
+graph_ak_country_1 = ggplot(world_sf, aes(
+  x = reorder(name, n),
+  y = n,
+  tooltip = paste0(name, ":", n),
+  data_id = name,
+  fill = "gray70")) +
+  geom_col_interactive(data = filter(world_sf, !is.na(n)), 
+                       fill = "gray70",
+                        hover_css = "fill:#black; 
+                       stroke:black; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+    coord_flip() + 
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+graph_ak_country_2 = ggplot() +
+  geom_sf(data = world_sf, fill = "lightgrey", color = "lightgrey") +
+    geom_sf_interactive(
+      data = filter(world_sf, !is.na(n)),
+    aes(tooltip = paste0(name, ":", n), 
+        data_id = group), 
+        fill = "gray70") +
+  coord_sf(crs = st_crs(3857)) +
+  theme_void() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+combined_ak_country = graph_ak_country_1 / graph_ak_country_2 + plot_layout(heights = c(2,2))
+
+interactive_plot = girafe(ggobj = combined_ak_country, 
+                            width_svg = 10, height_svg = 14)
+
+interactive_plot = girafe_options(
+  interactive_plot,
+  opts_hover(css = "fill:red;stroke:black;"))
+
+interactive_plot
+```
+
+```{r}
+
+data_ak_group = data_ak_country %>%
+  distinct(group, n_group) %>%
+  filter(!group == "NA")
+
+graph_ak_country_1 = ggplot(data_ak_group, aes(
+  x = reorder(group, n_group),
+  y = n_group,
+  tooltip = paste0(group, ":", n_group),
+  data_id = group,
+  fill = group)) +
+  geom_col_interactive(data = filter(data_ak_group, !is.na(n)), 
+                       fill = "gray70",
+                        hover_css = "fill:#f20089; 
+                       stroke:black; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+graph_ak_country_2 = ggplot() +
+  geom_sf(data = world_sf, fill = "lightgrey", color = "lightgrey") +
+    geom_sf_interactive(
+      data = filter(world_sf, !is.na(n)),
+    aes(tooltip = paste0(name, ":", n), 
+        data_id = group, 
+        fill = group)) +
+  coord_sf(crs = st_crs(3857)) +
+  theme_void() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+combined_ak_country = graph_ak_country_1 / graph_ak_country_2 + plot_layout(heights = c(2,2))
+
+interactive_plot = girafe(ggobj = combined_ak_country, 
+                            width_svg = 10, height_svg = 14)
+
+interactive_plot = girafe_options(
+  interactive_plot,
+  opts_hover(css = "fill:red;stroke:black;"))
+
+interactive_plot
+```
+
+### Expertise
+
+```{r}
+
+data_ak_expertise = data_ak %>%
+  count(ArtExp_Expertise_cluster, name = "n") %>%
+  filter(!is.na(ArtExp_Expertise_cluster))
+
+graph_ak = ggplot(data_ak_expertise, aes(y = n, x = reorder(ArtExp_Expertise_cluster, n),
+                                tooltip = paste0(ArtExp_Expertise_cluster, ": ", n), 
+                                data_id = ArtExp_Expertise_cluster)) +
+  geom_col_interactive(fill = "gray70",
+                        hover_css = "fill:#001d59; 
+                       stroke:black; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+  labs(title = "Variable : Expertise level in ak scale")  +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+girafe(ggobj = graph_ak) 
+```
+
 # References
+
+Gross, A. L., Kueider-Paisley, A. M., Sullivan, C., Schretlen, D., & International Neuropsychological Normative Database Initiative. (2019). Comparison of approaches for equating different versions of the mini-mental state examination administered in 22 studies. American journal of epidemiology, 188(12), 2202-2212.
 
 Henson, R. K., & Roberts, J. K. (2006). Use of exploratory factor analysis in published research: Common errors and some comment on improved practice. Educational and Psychological measurement, 66(3), 393-416.
 
 Specker, E. (2024). Further validating the VAIAK: Defining a psychometric model, configural measurement invariance, reliability, and practical guidelines. Psychology of Aesthetics, Creativity, and the Arts, 18(3), 449.
+
+Specker, E., Cotter, K. N., & Kim, K. Y. (2025). The next step for the VAIAK: An item-focused analysis. Psychology of Aesthetics, Creativity, and the Arts, 19(4), 684.
