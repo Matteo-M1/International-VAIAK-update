@@ -34,7 +34,7 @@ data = read.csv("International_vaiak.csv")
 
 The VAIAK is composed by two scales, the Art Interest (AI) and the Art Knowledge (AK). The two scales measure two distinctive constructs, thus the analysis will be carry out separately.
 
-The purpose of the study is to carry out analysis to observe how the items and the scale more in general behave across multiple populations and contexts.
+The purpose of the study is to carry out analysis to observe how the items and the scales more in general behave across multiple populations and contexts.
 
 For each scale we have collected different factors, including:
 
@@ -42,7 +42,7 @@ For each scale we have collected different factors, including:
 -   Setting, e.g., lab, museums, classrooms
 -   Country
 -   Languages
--   Expertise, two levels lay people and experts. The past CFA analysis show a different results between the levels for the factor, which can be important if we find difference in the multigroup CFA for the other factors (Medium, setting), because we do not have equal samples of experts across those.
+-   Expertise, two levels lay people and experts. The past CFA analysis show a different results between the levels, which can be important if we find differences in the multigroup CFA for the other factors (Medium, setting), because we do not have equal samples of experts across those.
 
 # Art Interest
 
@@ -60,7 +60,7 @@ data_ai = data %>%
 
 ## General analysis
 
-The total number of entries is 15452 For the total sample I plan two series of analysis:
+The total number of entries is 15452. For the total sample I plan these first analysis:
 
 -   Internal consistency with McDonald omega
 
@@ -70,7 +70,9 @@ The total number of entries is 15452 For the total sample I plan two series of a
 
     ![](images/Art%20interest%20model.png){width="50%"}
 
--   IRT, adopting a graded response model (GRM). I would also be interested in checking how much the latent construct classically measure and the one where each item is weighted differently based on the difficulties, like it is done in Gross et al., (2019)
+-   IRT, adopting a graded response model (GRM). I would also be interested in checking how much the latent construct classically measure and the one where each item is weighted differently based on the difficulties, like it is done in Gross et al., (2019). 
+
+Subsequentially, I plan to usecarry out multigroup CFA. 
 
 ## Multigroup analysis
 
@@ -159,7 +161,7 @@ girafe(ggobj = graph_ai)
 
 ### Country of origin
 
-As can be seen, there are many countries that do not reach an adequate number for the analysis. 
+As can be seen, there are many countries that do not reach an adequate number of participants for the analysis. 
 
 ```{r}
 
@@ -358,6 +360,14 @@ graph_ai = ggplot(data_ai_expertise, aes(y = n, x = reorder(ArtExp_Expertise_clu
 girafe(ggobj = graph_ai) 
 ```
 
+### Question for AI
+
+1) Do you agree with the analysis proposed? Are there other possible analysis of interest? 
+
+2) Do you agree with the country divisions? 
+
+Additionally there are a couple of items that other authors have criticized for a series of reasons. Maybe I could carry out a CFA or an IRT without those items and see whether the scale improve or not? 
+
 # Art Knowledge
 
 Art Knowledge (AK) includes 26 items, divided into two parts. In part B (6 items) each item contains an artwork, a question about the image and four possible answers, of which only one is correct. The theme of the questions varies from iconography to techniques and materials. In part C there are 10 images, for each the participant is asked to write the name of the artist and the style (total 26 items).
@@ -477,7 +487,7 @@ girafe(ggobj = graph_ak)
 
 world_sf = read_sf("https://raw.githubusercontent.com/holtzy/R-graph-gallery/master/DATA/world.geojson")
 
-data_ak_country = data_ai %>%
+data_ak_country = data_ak %>%
   count(Dem_Country, name = "n") %>%
   filter(!is.na(Dem_Country))
 
@@ -494,16 +504,17 @@ data_ak_country = data_ak_country %>%
                        "Ecuador") ~ "South America",
     
     Dem_Country %in% c("Finland", "Sweden", "Norway", "Estonia", "Latvia",
-                       "Lithuania", "Denmark", "Ireland") ~ "North Europe",
+                       "Lithuania", "Denmark", "Ireland", "United Kingdom") ~ "North Europe",
     
     Dem_Country %in% c("Portugal", "France", "Germany", "Netherlands",
-                       "Switzerland", "Luxembourg") ~ "West Europe",
+                       "Switzerland", "Luxembourg", "Belgium") ~ "West Europe",
     
     Dem_Country %in% c("Bulgaria", "Russia", "Belarus", "Romania", "Hungary", "Moldova", "Poland",
                        "Ukraine", "Slovakia") ~ "East Europe",
     
     Dem_Country %in% c("Albania", "Bosnia and Hrz.", "Greece", "Montenegro", "Bosnia and Herz.",
-                        "Portugal", "Serbia", "Slovenia", "North Macedonia", "Croatia") ~ "South Europe",
+                        "Portugal", "Serbia", "Slovenia", "North Macedonia", "Croatia", 
+                       "Italy", "Spain") ~ "South Europe",
     
     Dem_Country %in% c("Azerbaijan", "Israel", "Kuwait", "Lebanon", "Qatar","Saudi Arabia", 
                        "Turkey", "Armenia", "Georgia") ~ "West Asia",
@@ -551,10 +562,9 @@ graph_ak_country_1 = ggplot(world_sf, aes(
                        stroke:black; 
                        stroke-width:1.5px;") +
   theme_minimal() +
-    coord_flip() + 
   theme(
-    axis.text.y = element_blank(),
-    axis.ticks.y = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     legend.position = "none")
@@ -564,7 +574,7 @@ graph_ak_country_2 = ggplot() +
     geom_sf_interactive(
       data = filter(world_sf, !is.na(n)),
     aes(tooltip = paste0(name, ":", n), 
-        data_id = group), 
+        data_id = name), 
         fill = "gray70") +
   coord_sf(crs = st_crs(3857)) +
   theme_void() +
@@ -615,8 +625,8 @@ graph_ak_country_2 = ggplot() +
     geom_sf_interactive(
       data = filter(world_sf, !is.na(n)),
     aes(tooltip = paste0(name, ":", n), 
-        data_id = group, 
-        fill = group)) +
+        data_id = group), 
+        fill = "gray70") +
   coord_sf(crs = st_crs(3857)) +
   theme_void() +
   theme(
