@@ -360,14 +360,6 @@ graph_ai = ggplot(data_ai_expertise, aes(y = n, x = reorder(ArtExp_Expertise_clu
 girafe(ggobj = graph_ai) 
 ```
 
-### Question for AI
-
-1) Do you agree with the analysis proposed? Are there other possible analysis of interest? 
-
-2) Do you agree with the country divisions? 
-
-Additionally there are a couple of items that other authors have criticized for a series of reasons. Maybe I could carry out a CFA or an IRT without those items and see whether the scale improve or not? 
-
 # Art Knowledge
 
 Art Knowledge (AK) includes 26 items, divided into two parts. In part B (6 items) each item contains an artwork, a question about the image and four possible answers, of which only one is correct. The theme of the questions varies from iconography to techniques and materials. In part C there are 10 images, for each the participant is asked to write the name of the artist and the style (total 26 items).
