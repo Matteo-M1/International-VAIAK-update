@@ -1,0 +1,193 @@
+---
+title: "First analysis AK"
+format: 
+  html: 
+    toc: true            # Table of content (Menu)
+    toc-depth: 3         # Level of headings 
+    toc-location: left   # Position 
+    toc-title: "Contents" # Name
+    page-layout: article
+execute:
+  echo: FALSE    
+  warning: FALSE
+  message: FALSE
+  output: TRUE
+---
+
+# To the other pages
+
+[<- Introduction](index.html)
+
+
+[AI analysis ->](First analysis AI.html)
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(psych) # Omega
+library(lavaan) # CFA analysis
+library(mirt) # IRT analysis
+library(ggplot2)
+library(ggiraph) # interactive plot
+library(corrplot) #corrplot
+library(htmlwidgets) # interaction online
+```
+
+```{r}
+data = read.csv("International_vaiak.csv")
+```
+
+# Art Knowledge
+
+```{r}
+data_ak = data %>%
+  filter(
+    if_any(B1_Numeric:B6_Numeric, ~ !is.na(.x))) %>%
+  mutate(
+    Expertise = factor(ArtExp_Expertise_cluster))
+
+data_ak_original = data %>%
+  filter(Sett_Version == "VAIAK") %>%
+  filter(
+    if_any(B1_Numeric:B6_Numeric, ~ !is.na(.x))) %>%
+  mutate(
+    Expertise = factor(ArtExp_Expertise_cluster))
+
+data_ak_revised = data %>%
+  filter(Sett_Version == "VAIAK-R") %>%
+  filter(
+    if_any(B1_Numeric:B6_Numeric, ~ !is.na(.x))) %>%
+  mutate(
+    Expertise = factor(ArtExp_Expertise_cluster))
+```
+
+This graph represent the distribution of the score of the AK scale 
+
+```{r}
+
+data_ak_score = data_ak %>%
+  count(Art_Knowledge, name = "n") %>%
+  filter(!is.na(Art_Knowledge))
+
+graph_ak = ggplot(data_ak_score, aes(y = n, x = Art_Knowledge,
+                                tooltip = paste0(Art_Knowledge, ": ", n), 
+                                data_id = Art_Knowledge)) +
+  geom_col_interactive(fill = "grey70",
+                        hover_css = "fill:#009b64; 
+                       stroke:black; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+  labs(title = "Variable : Art Interest distribution")  +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none")
+
+girafe(ggobj = graph_ak) 
+```
+
+## Internal reliability 
+
+```{r, results='hide', fig.show='hide'}
+omega_ak = data_ak %>%                              # Omega analysis Art Knowledge
+  select(starts_with("C") | starts_with("B")) %>%
+  select(ends_with("Numeric")) %>%
+  select(!ends_with("b_Numeric")) %>%
+  omega
+```
+
+The McDonald's omega indicate a good internal reliability
+
+```{r}
+omega_ak$omega.tot
+```
+
+## Confirmatory factor analysis 
+
+### One factor model 
+
+```{r}
+Model_AK_one = "knowledge  =~ B1_Numeric + B2_Numeric + B3_Numeric + B4_Numeric + B5_Numeric +
+                            C1_1_Numeric + C1_2_Numeric + C2_1_Numeric + C2_2_Numeric + C3_1_Numeric +
+                            C3_2_Numeric + C4_1_Numeric + C4_2_Numeric + C5_1_Numeric + C5_2_Numeric +
+                            C6_1_Numeric + C6_2_Numeric + C7_1_Numeric + C7_2_Numeric + C8_1_Numeric +
+                            C8_2_Numeric + C9_1_Numeric + C9_2_Numeric + C10_1_Numeric + C10_2_Numeric
+
+                            C1_1_Numeric ~~ C1_2_Numeric
+                            C2_1_Numeric ~~ C2_2_Numeric
+                            C3_1_Numeric ~~ C3_2_Numeric
+                            C4_1_Numeric ~~ C4_2_Numeric
+                            C5_1_Numeric ~~ C5_2_Numeric
+                            C6_1_Numeric ~~ C6_2_Numeric
+                            C7_1_Numeric ~~ C7_2_Numeric
+                            C8_1_Numeric ~~ C8_2_Numeric
+                            C9_1_Numeric ~~ C9_2_Numeric
+                            C10_1_Numeric ~~ C10_2_Numeric" # model
+
+AK_onefactor = cfa(Model_AK_one, data = data_ak, std.lv=TRUE, estimator = "WLSMV",   
+                   ordered = names(data_ak %>% select(ends_with("Numeric") & !ends_with("b_Numeric"))))  
+
+fitMeasures(AK_onefactor, c(
+  "chisq",
+  "df",
+  "pvalue",
+  "cfi",
+  "tli",
+  "rmsea",
+  "rmsea.ci.lower",
+  "rmsea.ci.upper",
+  "rmsea.pvalue",
+  "srmr"))    # Indices
+```
+
+```{r}
+residuals = residuals(AK_onefactor, type = "cor") # residuals
+
+residuals = residuals$cov
+
+corrplot(residuals,
+         method = "color",
+         type = "upper",
+         col.lim = c(-0.8, 0.8))  # Indices
+```
+
+## Item Responce Theory
+
+### Full scale results
+
+The Part B and C of the analysis are going to be run using different models.
+
+```{r}
+AK_joint = data_ak %>%
+  select(ends_with("Numeric") & !ends_with("b_Numeric")) %>%
+  mutate(across(everything(), as.numeric))
+
+item_types = c(
+  rep("3PL", 6),
+  rep("2PL", 20))
+
+model_joint = mirt.model("
+  F1 = 1-26 
+  START = (1-6, g, 0.25)
+  FIXED = (1-6, g)") # F1 is the common factor
+
+AK_joint_IRT = mirt(
+  AK_joint,
+  model_joint,
+  itemtype = item_types)
+
+data_ak %>%
+  group_by(Expertise) %>%
+  select("B4") %>%
+  table() %>%
+  barplot()
+
+plot(AK_joint_IRT, type = "trace", 
+     facet_items = TRUE) # ICCs and category functioning
+
+summary(AK_joint_IRT) # threshold check
+```
+
+We can notice that it is in general pretty normally distributed around 0, with a limited skewness into the lower values.

@@ -14,6 +14,13 @@ execute:
   output: TRUE
 ---
 
+# To the other pages
+
+[AI analysis ->](First analysis AI.html)
+
+
+[AK analysis ->](First analysis AK.html)
+
 ```{r}
 library(dplyr)
 library(tidyr)
@@ -60,7 +67,7 @@ data_ai = data %>%
 
 ## General analysis
 
-The total number of entries is 15452. For the total sample I plan these first analysis:
+The total number of entries is  For the total sample I plan these first analysis:
 
 -   Internal consistency with McDonald omega
 
@@ -81,7 +88,6 @@ For the different factors I plan to carry out multigroup CFA to check if we can 
 ### Medium
 
 ```{r}
-
 data_ai_medium = data_ai %>%
   count(Sett_Medium, name = "n") %>%
   filter(!is.na(Sett_Medium))
@@ -378,7 +384,7 @@ data_ak = data %>%
 
 ## General analysis
 
-The total number fo entries is 7092. For the total sample I plan the same analysis as above, with some changes: 
+The total number fo entries is . For the total sample I plan the same analysis as above, with some changes: 
 
 -   McDonald omega
 
