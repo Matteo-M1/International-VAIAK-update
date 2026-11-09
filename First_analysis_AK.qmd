@@ -18,8 +18,7 @@ execute:
 
 [<- Introduction](index.html)
 
-
-[AI analysis ->](First analysis AI.html)
+[AI analysis ->](First_analysis_AI.html)
 
 ```{r}
 library(dplyr)
@@ -59,9 +58,18 @@ data_ak_revised = data %>%
     if_any(B1_Numeric:B6_Numeric, ~ !is.na(.x))) %>%
   mutate(
     Expertise = factor(ArtExp_Expertise_cluster))
+
+data_ak_na = data %>%
+  filter(is.na(Sett_Version)) %>%
+  filter(
+    if_any(B1_Numeric:B6_Numeric, ~ !is.na(.x))) %>%
+  mutate(
+    Expertise = factor(ArtExp_Expertise_cluster))
+
+write.csv(data_ak_na, "C:\\Users\\matte\\Desktop\\dataset_check_2.csv")
 ```
 
-This graph represent the distribution of the score of the AK scale 
+This graph represent the distribution of the score of the AK scale
 
 ```{r}
 
@@ -88,7 +96,7 @@ graph_ak = ggplot(data_ak_score, aes(y = n, x = Art_Knowledge,
 girafe(ggobj = graph_ak) 
 ```
 
-## Internal reliability 
+## Internal reliability
 
 ```{r, results='hide', fig.show='hide'}
 omega_ak = data_ak %>%                              # Omega analysis Art Knowledge
@@ -104,12 +112,12 @@ The McDonald's omega indicate a good internal reliability
 omega_ak$omega.tot
 ```
 
-## Confirmatory factor analysis 
+## Confirmatory factor analysis (CFA)
 
-### One factor model 
+### One factor model
 
 ```{r}
-Model_AK_one = "knowledge  =~ B1_Numeric + B2_Numeric + B3_Numeric + B4_Numeric + B5_Numeric +
+Model_AK_one = "knowledge  =~ B1_Numeric + B2_Numeric + B3_Numeric + B4_Numeric + B5_Numeric + B6_Numeric +
                             C1_1_Numeric + C1_2_Numeric + C2_1_Numeric + C2_2_Numeric + C3_1_Numeric +
                             C3_2_Numeric + C4_1_Numeric + C4_2_Numeric + C5_1_Numeric + C5_2_Numeric +
                             C6_1_Numeric + C6_2_Numeric + C7_1_Numeric + C7_2_Numeric + C8_1_Numeric +
@@ -181,6 +189,131 @@ AK_joint_IRT = mirt(
 data_ak %>%
   group_by(Expertise) %>%
   select("B4") %>%
+  table() %>%
+  barplot()
+
+data_ak %>%
+  group_by(Expertise) %>%
+  select("B4_Numeric") %>%
+  table() %>%
+  barplot()
+
+AK_joint %>%
+  select("B4_Numeric") %>%
+  table() %>%
+  barplot()
+
+AK_joint %>%
+  select("B3_Numeric") %>%
+  table() %>%
+  barplot()
+
+plot(AK_joint_IRT, type = "trace", 
+     facet_items = TRUE) # ICCs and category functioning
+
+summary(AK_joint_IRT) # threshold check
+```
+
+### Original
+
+The Part B and C of the analysis are going to be run using different models.
+
+```{r}
+AK_joint = data_ak_original %>%
+  select(ends_with("Numeric") & !ends_with("b_Numeric")) %>%
+  mutate(across(everything(), as.numeric))
+
+data.frame(
+  item = names(AK_joint),
+  position = seq_along(AK_joint),
+  item_type = item_types
+)
+
+item_types = c(
+  rep("3PL", 6),
+  rep("2PL", 20))
+
+model_joint = mirt.model("
+  F1 = 1-26 
+  START = (1-6, g, 0.25)
+  FIXED = (1-6, g)") # F1 is the common factor
+
+AK_joint_IRT = mirt(
+  AK_joint,
+  model_joint,
+  itemtype = item_types)
+
+data_ak_original %>%
+  group_by(Expertise) %>%
+  select("B4_Numeric") %>%
+  table() %>%
+  barplot()
+
+plot(AK_joint_IRT, type = "trace", 
+     facet_items = TRUE) # ICCs and category functioning
+
+summary(AK_joint_IRT) # threshold check
+```
+
+### VAIAK - R
+
+The Part B and C of the analysis are going to be run using different models.
+
+```{r}
+AK_joint = data_ak_revised %>%
+  select(ends_with("Numeric") & !ends_with("b_Numeric")) %>%
+  mutate(across(everything(), as.numeric))
+
+item_types = c(
+  rep("3PL", 6),
+  rep("2PL", 20))
+
+model_joint = mirt.model("
+  F1 = 1-26 
+  START = (1-6, g, 0.25)
+  FIXED = (1-6, g)") # F1 is the common factor
+
+AK_joint_IRT = mirt(
+  AK_joint,
+  model_joint,
+  itemtype = item_types)
+
+data_ak_revised %>%
+  group_by(Expertise) %>%
+  select("B4_Numeric") %>%
+  table() %>%
+  barplot()
+
+plot(AK_joint_IRT, type = "trace", 
+     facet_items = TRUE) # ICCs and category functioning
+
+summary(AK_joint_IRT) # threshold check
+```
+
+### NA
+
+```{r}
+AK_joint = data_ak_na %>%
+  select(ends_with("Numeric") & !ends_with("b_Numeric")) %>%
+  mutate(across(everything(), as.numeric))
+
+item_types = c(
+  rep("3PL", 6),
+  rep("2PL", 20))
+
+model_joint = mirt.model("
+  F1 = 1-26 
+  START = (1-6, g, 0.25)
+  FIXED = (1-6, g)") # F1 is the common factor
+
+AK_joint_IRT = mirt(
+  AK_joint,
+  model_joint,
+  itemtype = item_types)
+
+data_ak_na %>%
+  group_by(Expertise) %>%
+  select("B4_Numeric") %>%
   table() %>%
   barplot()
 

@@ -16,10 +16,10 @@ execute:
 
 # To the other pages
 
-[AI analysis ->](First analysis AI.html)
+[AI analysis ->](First_analysis_AI.html)
 
 
-[AK analysis ->](First analysis AK.html)
+[AK analysis ->](First_analysis_AK.html)
 
 ```{r}
 library(dplyr)
@@ -60,14 +60,16 @@ Only participants who have completed the complete scale are taken into account.
 ```{r, results='hide', fig.show='hide'}
 
 data_ai = data %>%
-    filter(
-      if_all(AI_1_1:AI_2_4, ~ !is.na(.x)))
+  filter(
+    if_any(AI_1_1:AI_2_4, ~ !is.na(.x))) %>%
+  mutate(
+    Expertise = factor(ArtExp_Expertise_cluster))
 
 ```
 
 ## General analysis
 
-The total number of entries is  For the total sample I plan these first analysis:
+The total number of entries is 15,383 For the total sample I plan these first analysis:
 
 -   Internal consistency with McDonald omega
 
@@ -375,16 +377,16 @@ Only participants who have completed the complete part B are taken into account.
 ```{r, results='hide', fig.show='hide'}
 
 data_ak = data %>%
-    filter(
-      if_all(B1_Numeric:B6_Numeric, ~ !is.na(.x))) %>%
+  filter(
+    if_any(B1_Numeric:B6_Numeric, ~ !is.na(.x))) %>%
   mutate(
-    ID_Database = factor(ID_Database))
+    Expertise = factor(ArtExp_Expertise_cluster))
 
 ```
 
 ## General analysis
 
-The total number fo entries is . For the total sample I plan the same analysis as above, with some changes: 
+The total number fo entries is 6,751. For the total sample I plan the same analysis as above, with some changes: 
 
 -   McDonald omega
 

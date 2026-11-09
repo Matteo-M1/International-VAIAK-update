@@ -1,0 +1,765 @@
+---
+title: "First analysis AI"
+format: 
+  html:
+    toc: true # Table of content (Menu)
+    toc-depth: 3         # Level of headings 
+    toc-location: left  # Position 
+    toc-title: "Contents" # Name
+    page-layout: article
+execute:
+  echo: FALSE    
+  warning: FALSE
+  message: FALSE
+  output: TRUE
+---
+
+# To the other pages
+
+[<- Introduction](index.html)
+
+[AK analysis ->](First_analysis_AK.html)
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(psych) # Omega
+library(lavaan) # CFA analysis
+library(mirt) # IRT analysis
+library(ggplot2)
+library(ggridges) # ridgeline plot
+library(ggiraph) # interactive plot
+library(ggcorrplot) #corrplot
+library(htmlwidgets) # interaction online
+```
+
+```{r}
+data = read.csv("International_vaiak.csv")
+```
+
+# Art Interest
+
+```{r}
+data_ai = data %>%
+  filter(
+    if_any(AI_1_1:AI_2_4, ~ !is.na(.x))) %>%
+  mutate(
+    Expertise = factor(ArtExp_Expertise_cluster))
+```
+
+This graph represent the distribution of the scores of the AI scale. The line in the middle is the Mean.
+
+```{r}
+
+data_ai_score = data_ai %>%
+  count(Art_Interest, name = "n") %>%
+  filter(!is.na(Art_Interest))
+
+graph_ai = ggplot(data_ai_score, aes(y = n, x = Art_Interest,
+                                tooltip = paste0(Art_Interest, ": ", n), 
+                                data_id = Art_Interest)) +
+  geom_col_interactive(fill = "grey70",
+                        hover_css = "fill:#009b64; 
+                       stroke:black; 
+                       stroke-width:1.5px;") +
+  theme_minimal() +
+  xlab("Score") + 
+  ylab("Frequency") +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = "none") +
+  geom_vline(
+    xintercept = mean(data_ai_score$Art_Interest),
+    linetype = "dashed") +
+  annotate(
+    "text", 
+    x = Inf, y = Inf, 
+    label = sprintf("Mean = %.2f", mean(data_ai_score$Art_Interest)), 
+    hjust = 1.1, vjust = 1.5, 
+    size = 4, color = "black") + 
+  ggtitle("Art Interest distribution")
+
+girafe(ggobj = graph_ai) 
+```
+
+At the end you can find the percentage of responses selected for each items [Here](#answers-for-the-singular-items).
+
+## Internal reliability
+
+```{r, results='hide', fig.show='hide'}
+omega_ai = data_ai %>%                              # Omega analysis Art Interest
+  select(starts_with("AI")) %>%
+  omega
+```
+
+We calculate internal reliability with McDonald's $\omega$, which is considered acceptable when above .7. Thus this shows good internal reliability
+
+```{r}
+omega_ai$omega.tot
+```
+
+## Confirmatory factor analysis (CFA)
+
+For the CFA, I will keep in mind the following criteria: 
+
+- CFI > .9
+- TLI > .9
+- RMSEA < .8
+- SRMR < .8
+
+### One factor model
+
+Firstly, I will carry a one factor model with the additional correlation that we established in the [Introduction](index.html) (Residual correlation between AI_1_3 and AI_1_7; and between AI_2_2 and AI_2_4).
+
+```{r}
+Model_AI_one = "interest  =~ AI_1_1 + AI_1_2 + AI_1_3 + AI_1_4 + AI_1_5 + AI_1_6 + AI_1_7 +
+                       
+                           AI_2_1 + AI_2_2 + AI_2_3 + AI_2_4
+
+                           AI_1_3 ~~ AI_1_7
+                           AI_2_2 ~~ AI_2_4" 
+
+AI_onefactor = cfa(Model_AI_one, data = data_ai, std.lv=TRUE, estimator = "MLR")  # CFA with MLR
+
+fitMeasures(AI_onefactor, c(
+  "chisq",
+  "df",
+  "pvalue",
+  "cfi",
+  "tli",
+  "rmsea",
+  "rmsea.ci.lower",
+  "rmsea.ci.upper",
+  "rmsea.pvalue",
+  "srmr"))    # Indices
+```
+
+The CFI, TLI and SRMR indicate a good fit, while the RMSEA is above the mentioned criteria.
+
+Thus, I present the factor loadings, which I judged keeping the general rule of thumb that a factor loading higher than .70 is excellent and above .50 is good.
+
+```{r}
+
+standardized_results = standardizedSolution(AI_onefactor)
+
+factor_loadings = standardized_results %>%
+  filter(op == "=~") %>%
+  select(lhs, rhs, est.std, pvalue)
+
+factor_loadings
+```
+
+All the items are above .5, but we can notice 4 items below .7: AI_1_1, AI_1_3, AI_1_7, AI_2_1, AI_2_2, AI_2_4. You can find the content of the items [here](#vaiak_items).
+
+Exploring the correlation of the residuals help us understand better the reason. The two empty boxes represent the residuals correlation that are already included in the model.  
+
+```{r}
+
+residuals = residuals(AI_onefactor, type = "cor") # residuals
+
+residuals = residuals$cov
+
+residuals[3,7] = NA
+
+residuals[9,11] = NA
+
+ggcorrplot(residuals,
+           lab = TRUE, 
+           type = "upper",
+           digits = 1,
+           show.diag = FALSE,
+           ggtheme = theme_void,
+           hc.order = FALSE,
+           outline.color = "black", 
+           colors = c("#6D9EC1", "white", "#E46726")) +
+    scale_fill_gradient2(
+    limits   = c(-0.4, 0.4),
+    midpoint = 0) + 
+  ggtitle("Correlations of residual")
+```
+
+We notice a higher positive correlation among the AI_2 items compared to the others. This, plus the lower factor loadings of those items seems to suggest than a better model would separate these items from the rests. 
+
+### Two factors model
+
+I proposed a different model, where the two parts of the scale are two separate factors (interest_subjective and interest_behaviour) with a hierarchical higher factor (interest).
+
+```{r}
+Model_AI_two = "interest_subj =~ AI_1_1 + AI_1_2 + AI_1_3 + AI_1_4 + AI_1_5 + AI_1_6 + AI_1_7
+
+                interest_beha =~ AI_2_1 + AI_2_2 + AI_2_3 + AI_2_4 
+
+                interest =~ interest_subj + interest_beha" # model
+
+AI_twofactor = cfa(Model_AI_two, data = data_ai, std.lv=TRUE, estimator = "MLR")  # CFA with MLR
+
+fitMeasures(AI_twofactor, c(
+  "chisq",
+  "df",
+  "pvalue",
+  "cfi",
+  "tli",
+  "rmsea",
+  "rmsea.ci.lower",
+  "rmsea.ci.upper",
+  "rmsea.pvalue",
+  "srmr"))    # Indices
+```
+
+The indexes all improved, but the RMSEA is still above the criteria.
+
+```{r}
+
+standardized_results = standardizedSolution(AI_twofactor)
+
+factor_loadings = standardized_results %>%
+  filter(op == "=~") %>%
+  select(lhs, rhs, est.std, pvalue)
+
+factor_loadings
+```
+
+Here as well all the factor loadings have improved, with AI_1_1, AI_1_3 and AI_1_7 still below .7.
+
+## Item Responce Theory (IRT)
+
+I carry out two distinctive IRT. One for the entire scale, the other with the two subfactors (interest_subjective and interest_behaviour) divided. 
+
+### One factor model
+
+```{r, results='hide', fig.show='hide'}
+AI = data_ai %>% 
+  select(starts_with("AI"))
+
+AI_grm = mirt(AI, 1, itemtype = "graded") # run the model
+
+coef = coef(AI_grm, IRTpars = TRUE, simplify = TRUE) # item parameters
+```
+
+This graph represent how informative on average the items are in relation to the ability of the participants ($\theta$). The dotted line represents the mean $\theta$. 
+
+```{r}
+theta = seq(-5, 5, length.out = 1000)
+
+test_info = testinfo(AI_grm, Theta = theta)/ncol(AI)
+
+df = data.frame(
+  theta = theta, 
+  information = test_info)
+
+ggplot(df, aes(x = theta, y=information)) +
+  geom_line(color = "black", linewidth = 1.2) +
+      scale_fill_manual(values=c("black")) +
+  ylim(0, 4) +
+  theme_minimal() +
+  theme(panel.border = element_rect(color = "black", fill = NA),
+        axis.ticks.length = unit(0.4, "cm"), 
+        axis.text.x = element_text(size = 15, color = "black"),
+        axis.text.y = element_text(size = 15, color = "black"),
+        axis.title = element_text(size = 20), 
+        legend.position = c(0.20, 0.7),
+        legend.text = element_text(size = 14), 
+        legend.title = element_text(size = 14), 
+        legend.background = element_rect(
+          color = "black",  
+          linetype = "solid")) +
+  geom_vline(
+    xintercept = mean(test_info),
+    linetype = "dashed") + 
+  annotate(
+    "text", 
+    x = Inf, y = Inf, 
+    label = sprintf("Mean = %.2f", mean(test_info)), 
+    hjust = 1.1, vjust = 1.5, 
+    size = 4, color = "black") + 
+  ggtitle("Information x ability for Art Interest")
+```
+
+We can notice that it is in general pretty normally distributed around 0, with a little skewness into the lower values. This means that it is more informative for the people with lower ability. I think it is interesting that is focused that the majority of distribution is below the mean. 
+
+We carried out analysis for the individual items. 
+
+For each item, $a$ represents the discrimination parameter, i.e. how much the value vary in relation to the ability $\theta$. A high $a$ means that the probability of answering an item correctly changes very sharply as $\theta$ increases.
+
+```{r}
+coef_item = coef$items
+
+plot_data = data.frame(
+  item = rownames(coef_item),
+  a = coef_item[, 1])
+
+data.frame(plot_data[, c(1,2)])
+```
+
+We can visualize the same data graphically. 
+
+```{r}
+
+ggplot(plot_data, aes(y= a, x = item)) +
+  geom_col(color = "black", linewidth = 1.2) +
+      scale_fill_manual(values=c("black")) +
+  ylim(0, 5) +
+  theme_minimal() + 
+  ggtitle("Discrimination parameter a of the AI items")
+```
+
+We can observe than the items already noticed before (AI_1_1, AI_1_3 and AI_1_7) are the ones with the lower $a$. At the same times, all the items from the AI_2 are also on on the lower parts of the graph.
+
+$b$ represents the how much ability the participants needs to pass from a responce (e.g. 1) to the next (2). For example, in AI_1_1 a participant with an ability of least 0.08802223 (b5) has a 50% probability of responding 6 or higher. The higher the $b$ the more difficult it is.
+
+```{r}
+data.frame(coef_item[, 2:7])
+```
+
+The graph represents the above shown data. Each box is an item and each line represents the probability to answer in a specific way (P1 probability to answer 1). The slope of the lines represent the $a$, the steeper it is, the higher $a$ is, the more efficient is the question in distinguish between individuals who know the material and those who do not.
+
+```{r}
+plot(AI_grm, type = "trace", 
+     facet_items = TRUE) # ICCs and category functioning
+```
+
+Subsequentially we check how much the factor (Art Interest) is linked to the item. $F1$ represents the factor loading, while $h2$ is how much variability of the item is explained by the factor.
+
+```{r}
+summary(AI_grm) # threshold check
+```
+
+### Two factors model
+
+Given that the two factors showed a better fit, I also tested an IRT by analysis the two subscale separately.
+
+#### Subjective Art Interst
+
+```{r, results='hide', fig.show='hide'}
+AI_subj = data_ai %>% 
+  select(starts_with("AI_1"))
+
+AI_grm = mirt(AI_subj, 1, itemtype = "graded") # run the model
+
+coef = coef(AI_grm, IRTpars = TRUE, simplify = TRUE) # item parameters
+```
+
+```{r}
+theta = seq(-5, 5, length.out = 1000)
+
+test_info = testinfo(AI_grm, Theta = theta)/ncol(AI_subj)
+
+df = data.frame(
+  theta = theta, 
+  information = test_info)
+
+ggplot(df, aes(x = theta, y=information)) +
+  geom_line(color = "black", linewidth = 1.2) +
+      scale_fill_manual(values=c("black")) +
+  ylim(0, 4) +
+  theme_minimal() +
+  theme(panel.border = element_rect(color = "black", fill = NA),
+        axis.ticks.length = unit(0.4, "cm"), 
+        axis.text.x = element_text(size = 15, color = "black"),
+        axis.text.y = element_text(size = 15, color = "black"),
+        axis.title = element_text(size = 20), 
+        legend.position = c(0.20, 0.7),
+        legend.text = element_text(size = 14), 
+        legend.title = element_text(size = 14), 
+        legend.background = element_rect(
+          color = "black",  
+          linetype = "solid")) +
+  geom_vline(
+    xintercept = mean(test_info),
+    linetype = "dashed") + 
+  annotate(
+    "text", 
+    x = Inf, y = Inf, 
+    label = sprintf("Mean = %.2f", mean(test_info)), 
+    hjust = 1.1, vjust = 1.5, 
+    size = 4, color = "black") + 
+  ggtitle("Information x ability for Subjective Art Interest")
+```
+
+```{r}
+coef_item = coef$items
+
+plot_data = data.frame(
+  item = rownames(coef_item),
+  a = coef_item[, 1])
+
+plot_data
+
+ggplot(plot_data, aes(y= a, x = item)) +
+  geom_col(color = "black", linewidth = 1.2) +
+      scale_fill_manual(values=c("black")) +
+  ylim(0, 5) +
+  theme_minimal() + 
+  ggtitle("Discrimination parameter a of the Subjective AI items")
+```
+
+```{r}
+data.frame(coef_item[, 2:7])
+```
+
+```{r}
+plot(AI_grm, type = "trace", 
+     facet_items = TRUE) # ICCs and category functioning
+```
+
+```{r}
+summary(AI_grm) # threshold check
+```
+
+#### Behavioural Art Interst
+
+```{r, results='hide', fig.show='hide'}
+AI_beha = data_ai %>% 
+  select(starts_with("AI_2"))
+
+AI_grm = mirt(AI_beha, 1, itemtype = "graded") # run the model
+
+coef = coef(AI_grm, IRTpars = TRUE, simplify = TRUE) # item parameters
+```
+
+```{r}
+theta = seq(-5, 5, length.out = 1000)
+
+test_info = testinfo(AI_grm, Theta = theta)/ncol(AI_beha)
+
+df = data.frame(
+  theta = theta, 
+  information = test_info)
+
+ggplot(df, aes(x = theta, y=information)) +
+  geom_line(color = "black", linewidth = 1.2) +
+      scale_fill_manual(values=c("black")) +
+  ylim(0, 4) +
+  theme_minimal() +
+  theme(panel.border = element_rect(color = "black", fill = NA),
+        axis.ticks.length = unit(0.4, "cm"), 
+        axis.text.x = element_text(size = 15, color = "black"),
+        axis.text.y = element_text(size = 15, color = "black"),
+        axis.title = element_text(size = 20), 
+        legend.position = c(0.20, 0.7),
+        legend.text = element_text(size = 14), 
+        legend.title = element_text(size = 14), 
+        legend.background = element_rect(
+          color = "black",  
+          linetype = "solid")) +
+  geom_vline(
+    xintercept = mean(test_info),
+    linetype = "dashed") + 
+  annotate(
+    "text", 
+    x = Inf, y = Inf, 
+    label = sprintf("Mean = %.2f", mean(test_info)), 
+    hjust = 1.1, vjust = 1.5, 
+    size = 4, color = "black") + 
+  ggtitle("Information x ability for Behavioural Art Interest")
+```
+
+```{r}
+coef_item = coef$items
+
+plot_data = data.frame(
+  item = rownames(coef_item),
+  a = coef_item[, 1])
+
+plot_data
+
+ggplot(plot_data, aes(y= a, x = item)) +
+  geom_col(color = "black", linewidth = 1.2) +
+      scale_fill_manual(values=c("black")) +
+  ylim(0, 5) +
+  theme_minimal() + 
+  ggtitle("Discrimination parameter a of the Behavioural AI items")
+```
+
+```{r}
+data.frame(coef_item[, 2:7])
+```
+
+```{r}
+plot(AI_grm, type = "trace", 
+     facet_items = TRUE) # ICCs and category functioning
+```
+
+```{r}
+summary(AI_grm) # threshold check
+```
+
+## Distribution
+
+Following Anna Panzeri adviced for the CFA I plan 15 participants for parameter (11 Factor loadings, 11 Residual variances and 11 Intercepts). Thus I will keep 15 x 33 = 495 participants. 
+
+### Language
+
+```{r}
+data_ai_language = data_ai %>%
+  group_by(Sett_Language) %>%
+  filter(n() > 495) %>%
+  ungroup()
+
+summary_ai_language = data_ai_language %>%
+  group_by(Sett_Language) %>%
+  summarise(
+    n_participants = n(),
+    art_interest = mean(Art_Interest, na.rm = TRUE),
+    art_interest_sd = sd(Art_Interest, na.rm = TRUE),
+    .groups = "drop")
+
+ggplot(data_ai_language, aes(x = Art_Interest, y = Sett_Language, fill = Sett_Language)) +
+  geom_density_ridges(scale = 1.8, rel_min_height = 0.01, alpha = 0.8, 
+                      quantile_lines = TRUE, quantiles = 2) +
+      theme_ridges() + 
+  scale_fill_discrete(na.value = "grey70") + 
+  ggtitle("AI scores x Languages")
+
+knitr::kable(
+  summary_ai_language %>%
+  select(Sett_Language, n_participants, art_interest, art_interest_sd), 
+  col.names = c("Group", "Number of participants", "Mean", "SD"),
+  digits = 2, 
+  align = "c")
+```
+
+### Geographical area of origin
+
+I do not think how interesting this analysis may be. 
+
+```{r}
+
+data_ai_group = data_ai %>%
+  mutate(
+  group = case_when(
+    Dem_Country %in% c("Canada", "United States of America") ~ "North America",  
+    
+    Dem_Country %in% c("Mexico", "Costa Rica", "Cuba", "The Bahamas",
+                       "Barbados", "Trinidad and Tobago") ~ "Central America and Caribbean",  
+    
+    Dem_Country %in% c("Brazil", "Argentina", "Chile", "Peru", 
+                       "Bolivia", "Venezuela", "Uruguay", "Colombia", 
+                       "Ecuador") ~ "South America",
+    
+    Dem_Country %in% c("Finland", "Sweden", "Norway", "Estonia", "Latvia",
+                       "Lithuania", "Denmark", "Ireland") ~ "North Europe",
+    
+    Dem_Country %in% c("Portugal", "France", "Germany", "Netherlands",
+                       "Switzerland", "Luxembourg") ~ "West Europe",
+    
+    Dem_Country %in% c("Bulgaria", "Russia", "Belarus", "Romania", "Hungary", "Moldova", "Poland",
+                       "Ukraine", "Slovakia") ~ "East Europe",
+    
+    Dem_Country %in% c("Albania", "Bosnia and Hrz.", "Greece", "Montenegro", "Bosnia and Herz.",
+                        "Portugal", "Serbia", "Slovenia", "North Macedonia", "Croatia") ~ "South Europe",
+    
+    Dem_Country %in% c("Azerbaijan", "Israel", "Kuwait", "Lebanon", "Qatar","Saudi Arabia", 
+                       "Turkey", "Armenia", "Georgia") ~ "West Asia",
+    
+    Dem_Country %in% c("Kyrgyzstan", "Kazakhstan") ~ "Central Asia",
+    
+    Dem_Country %in% c("Bangladesh", "India", "Sri Lanka", "Iran", "Nepal", 
+                       "Pakistan") ~ "Southern Asia",
+    
+    Dem_Country %in% c("Indonesia", "Malaysia", "Vietnam", 
+                       "Singapore", "Philippines") ~ "South-eastern Asia",
+    
+    Dem_Country %in% c("Japan", "China", "South Korea", "Taiwan", "Hong Kong") ~ "East Asia",
+    
+    Dem_Country %in% c("Australia", "New Zealand") ~ "Australia and New Zealand",
+    
+    Dem_Country %in% c("Algeria", "Tunisia", "Egypt") ~ "Northern Africa",
+    
+    Dem_Country %in% c("South Africa") ~ "Southern Africa",
+    
+    Dem_Country %in% c("Nigeria") ~ "Western Africa",
+    
+    Dem_Country %in% c("Zimbabwe", "Malawi", "Kenya", "Uganda") ~ "Eastern Africa",  
+    
+    Dem_Country %in% c("", NA) ~ NA,  
+
+    TRUE ~ Dem_Country))
+
+summary_ai_group = data_ai_group %>%
+      group_by(group) %>%
+  filter(n() > 495) %>%
+  summarise(
+    n_participants = n(),
+    art_interest = mean(Art_Interest, na.rm = TRUE),
+    art_interest_sd = sd(Art_Interest, na.rm = TRUE),
+    .groups = "drop")
+
+data_ai_group = data_ai_group %>%
+  filter(group %in% unique(summary_ai_group$group))
+
+ggplot(data_ai_group, aes(x = Art_Interest, y = group, fill = group)) +
+  geom_density_ridges(scale = 1.8, rel_min_height = 0.01, alpha = 0.8, 
+                      quantile_lines = TRUE, quantiles = 2) +
+      theme_ridges() + 
+  scale_fill_discrete(na.value = "grey70") + 
+  ggtitle("AI scores x Geographical area of origin")
+
+knitr::kable(
+  summary_ai_group %>%
+  select(group, n_participants, art_interest, art_interest_sd), 
+  col.names = c("Group", "Number of participants", "Mean", "SD"),
+  digits = 2, 
+  align = "c")
+```
+
+### Expertise
+
+```{r}
+data_ai_expertise = data_ai %>%
+  group_by(Expertise) %>%
+  filter(n() > 495) %>%
+  ungroup()
+
+summary_ai_expertise = data_ai_expertise %>%
+  group_by(Expertise) %>%
+  summarise(
+    n_participants = n(),
+    art_interest = mean(Art_Interest, na.rm = TRUE),
+    art_interest_sd = sd(Art_Interest, na.rm = TRUE),
+    .groups = "drop")
+
+ggplot(data_ai_expertise, aes(x = Art_Interest, y = Expertise, fill = Expertise)) +
+  geom_density_ridges(scale = 1.8, rel_min_height = 0.01, alpha = 0.8, 
+                      quantile_lines = TRUE, quantiles = 2) +
+      theme_ridges() + 
+  scale_fill_discrete(na.value = "grey70") + 
+  ggtitle("AI scores x Expertise")
+
+knitr::kable(
+  summary_ai_expertise %>%
+  select(Expertise, n_participants, art_interest, art_interest_sd), 
+  col.names = c("Group", "Number of participants", "Mean", "SD"),
+  digits = 2, 
+  align = "c")
+```
+
+### Context
+
+For the context I would exclude the classroom, given that it has far less participants, and that it is obviously for the almost totality composed by students. The other groups (Museum, Lab and Online) could theoretically also include other people. 
+
+```{r}
+data_ai_context = data_ai %>%
+  group_by(Sett_Context) %>%
+  filter(n() > 495) %>%
+  ungroup()
+
+summary_ai_context = data_ai_context %>%
+  group_by(Sett_Context) %>%
+  summarise(
+    n_participants = n(),
+    art_interest = mean(Art_Interest, na.rm = TRUE),
+    art_interest_sd = sd(Art_Interest, na.rm = TRUE),
+    .groups = "drop")
+
+ggplot(data_ai_context, aes(x = Art_Interest, y = Sett_Context, fill = Sett_Context)) +
+  geom_density_ridges(scale = 1.8, rel_min_height = 0.01, alpha = 0.8, 
+                      quantile_lines = TRUE, quantiles = 2) +
+      theme_ridges() + 
+  scale_fill_discrete(na.value = "grey70") + 
+  ggtitle("AI scores x Context")
+
+knitr::kable(
+  summary_ai_context %>%
+  select(Sett_Context, n_participants, art_interest, art_interest_sd), 
+  col.names = c("Group", "Number of participants", "Mean", "SD"),
+  digits = 2, 
+  align = "c")
+```
+
+### Medium
+
+For the Medium we do not have enough info. I do not think this is a problem, given that the Medium was considered more important to check for the AK scale.
+
+```{r}
+data_ai_medium = data_ai %>%
+  group_by(Sett_Medium) %>%
+  ungroup()
+
+summary_ai_medium = data_ai_medium %>%
+  group_by(Sett_Medium) %>%
+  summarise(
+    n_participants = n(),
+    art_interest = mean(Art_Interest, na.rm = TRUE),
+    art_interest_sd = sd(Art_Interest, na.rm = TRUE),
+    .groups = "drop")
+
+knitr::kable(
+  summary_ai_medium %>%
+  select(Sett_Medium, n_participants, art_interest, art_interest_sd), 
+  col.names = c("Group", "Number of participants", "Mean", "SD"),
+  digits = 2, 
+  align = "c")
+```
+
+# Extra
+
+## VAIAK items
+
+Answers from 1 (Not at all) to 7 (Very Much)
+
+- AI_1_1 : I enjoyed visiting art classes as a subject in school
+- AI_1_2 : I enjoy talking about art with others
+- AI_1_3 : I have many friends/acquaintances who are interested in art
+- AI_1_4 : I am interested in art
+- AI_1_5 : I am always looking for new artistic impressions and experiences
+- AI_1_6 : During my everyday life I spontaneously notice art objects that I find fascinating
+- AI_1_7 : I come from a family that is interested in art
+
+Answers from 1 (less than once per year) to 7 (once per week or more often)
+
+- AI_2_1 : How often do you visit art museums or art galleries on average?
+- AI_2_2 : How often do you read books, magazines or catalogues about art?
+- AI_2_3 : How often do you view images of artworks (picture books, internet, etc.)?
+- AI_2_4 : How often do you visit events about art or art history (seminars, projects, festivals, etc.)?
+
+## Answers for the singular items
+
+```{r}
+barplot(table(data_ai$AI_1_1)/
+                    nrow(data_ai), 
+        main = "AI_1_1")
+
+barplot(table(data_ai$AI_1_2)/
+                    nrow(data_ai), 
+        main = "AI_1_2")
+
+barplot(table(data_ai$AI_1_3)/
+                    nrow(data_ai), 
+        main = "AI_1_3")
+
+barplot(table(data_ai$AI_1_4)/
+                    nrow(data_ai), 
+        main = "AI_1_4")
+
+barplot(table(data_ai$AI_1_5)/
+                    nrow(data_ai), 
+        main = "AI_1_5")
+
+barplot(table(data_ai$AI_1_6)/
+                    nrow(data_ai), 
+        main = "AI_1_6")
+
+barplot(table(data_ai$AI_1_7)/
+                    nrow(data_ai), 
+        main = "AI_1_7")
+
+barplot(table(data_ai$AI_2_1)/
+                    nrow(data_ai), 
+        main = "AI_2_1")
+
+barplot(table(data_ai$AI_2_2)/
+                    nrow(data_ai), 
+        main = "AI_2_2")
+
+barplot(table(data_ai$AI_2_3)/
+                    nrow(data_ai), 
+        main = "AI_2_3")
+
+barplot(table(data_ai$AI_2_4)/
+                    nrow(data_ai), 
+        main = "AI_2_4")
+```

@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>First analysis AI</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="First_analysis_AI_files/libs/clipboard/clipboard.min.js"></script>
+<script src="First_analysis_AI_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="First_analysis_AI_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="First_analysis_AI_files/libs/quarto-html/popper.min.js"></script>
+<script src="First_analysis_AI_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="First_analysis_AI_files/libs/quarto-html/anchor.min.js"></script>
+<link href="First_analysis_AI_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="First_analysis_AI_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="First_analysis_AI_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="First_analysis_AI_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="First_analysis_AI_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="First_analysis_AI_files/libs/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
+
+<script src="First_analysis_AI_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+
+<link href="First_analysis_AI_files/libs/ggiraphjs-0.9.4/girafe.css" rel="stylesheet">
+
+<script src="First_analysis_AI_files/libs/ggiraphjs-0.9.4/girafe.js"></script>
+
+<script src="First_analysis_AI_files/libs/girafe-binding-0.9.6/girafe.js"></script>
+
+<link href="First_analysis_AI_files/libs/liberation-sans-0.5.2/css/liberation-sans.css" rel="stylesheet">
+
+<link href="First_analysis_AI_files/libs/liberation-serif-0.5.2/css/liberation-serif.css" rel="stylesheet">
+
+<link href="First_analysis_AI_files/libs/liberation-mono-0.5.2/css/liberation-mono.css" rel="stylesheet">
+
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article toc-left">
+<div id="quarto-sidebar-toc-left" class="sidebar toc-left">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#to-the-other-pages" id="toc-to-the-other-pages" class="nav-link active" data-scroll-target="#to-the-other-pages">To the other pages</a></li>
+  <li><a href="#art-interest" id="toc-art-interest" class="nav-link" data-scroll-target="#art-interest">Art Interest</a>
+  <ul class="collapse">
+  <li><a href="#internal-reliability" id="toc-internal-reliability" class="nav-link" data-scroll-target="#internal-reliability">Internal reliability</a></li>
+  <li><a href="#confirmatory-factor-analysis-cfa" id="toc-confirmatory-factor-analysis-cfa" class="nav-link" data-scroll-target="#confirmatory-factor-analysis-cfa">Confirmatory factor analysis (CFA)</a>
+  <ul class="collapse">
+  <li><a href="#one-factor-model" id="toc-one-factor-model" class="nav-link" data-scroll-target="#one-factor-model">One factor model</a></li>
+  <li><a href="#two-factors-model" id="toc-two-factors-model" class="nav-link" data-scroll-target="#two-factors-model">Two factors model</a></li>
+  </ul></li>
+  <li><a href="#item-responce-theory-irt" id="toc-item-responce-theory-irt" class="nav-link" data-scroll-target="#item-responce-theory-irt">Item Responce Theory (IRT)</a>
+  <ul class="collapse">
+  <li><a href="#one-factor-model-1" id="toc-one-factor-model-1" class="nav-link" data-scroll-target="#one-factor-model-1">One factor model</a></li>
+  <li><a href="#two-factors-model-1" id="toc-two-factors-model-1" class="nav-link" data-scroll-target="#two-factors-model-1">Two factors model</a></li>
+  </ul></li>
+  <li><a href="#distribution" id="toc-distribution" class="nav-link" data-scroll-target="#distribution">Distribution</a>
+  <ul class="collapse">
+  <li><a href="#language" id="toc-language" class="nav-link" data-scroll-target="#language">Language</a></li>
+  <li><a href="#geographical-area-of-origin" id="toc-geographical-area-of-origin" class="nav-link" data-scroll-target="#geographical-area-of-origin">Geographical area of origin</a></li>
+  <li><a href="#expertise" id="toc-expertise" class="nav-link" data-scroll-target="#expertise">Expertise</a></li>
+  <li><a href="#context" id="toc-context" class="nav-link" data-scroll-target="#context">Context</a></li>
+  <li><a href="#medium" id="toc-medium" class="nav-link" data-scroll-target="#medium">Medium</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#extra" id="toc-extra" class="nav-link" data-scroll-target="#extra">Extra</a>
+  <ul class="collapse">
+  <li><a href="#vaiak-items" id="toc-vaiak-items" class="nav-link" data-scroll-target="#vaiak-items">VAIAK items</a></li>
+  <li><a href="#answers-for-the-singular-items" id="toc-answers-for-the-singular-items" class="nav-link" data-scroll-target="#answers-for-the-singular-items">Answers for the singular items</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">First analysis AI</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="to-the-other-pages" class="level1">
+<h1>To the other pages</h1>
+<p><a href="index.html">&lt;- Introduction</a></p>
+<p><a href="First_analysis_AK.html">AK analysis -&gt;</a></p>
+</section>
+<section id="art-interest" class="level1">
+<h1>Art Interest</h1>
+<p>This graph represent the distribution of the scores of the AI scale. The line in the middle is the Mean.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="girafe html-widget html-fill-item" id="htmlwidget-c2d26705e3e5dfbe3461" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-c2d26705e3e5dfbe3461">{"x":{"html":"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' class='ggiraph-svg' role='graphics-document' id='svg_a4e55c11b09479d9' viewBox='0 0 504 360'>\n <style><![CDATA[.hover_data_svg_a4e55c11b09479d9[data-id = \"77\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"76\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"73\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"70\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"35\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"37\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"57\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"38\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"72\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"30\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"28\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"29\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"66\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"32\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"16\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"39\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"53\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"46\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"71\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"31\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"11\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"33\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"12\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"75\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"36\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"74\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"34\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"25\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"14\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"54\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"22\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"15\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"24\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"68\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"17\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"18\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"13\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"19\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"69\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"20\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"48\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"23\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"49\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"59\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"40\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"41\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"44\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"67\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"42\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"27\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"43\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"26\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"61\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"45\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"50\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"55\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"51\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"52\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"56\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"21\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"58\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"60\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"62\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"63\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"47\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"65\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }.hover_data_svg_a4e55c11b09479d9[data-id = \"64\"] { fill:#009b64; \n                       stroke:black; \n                       stroke-width:1.5px; }]]><\/style>\n <defs id='svg_a4e55c11b09479d9_defs'>\n  <clipPath id='svg_a4e55c11b09479d9_c1'>\n   <rect x='0' y='0' width='504' height='360'/>\n  <\/clipPath>\n  <clipPath id='svg_a4e55c11b09479d9_c2'>\n   <rect x='25.1' y='22.77' width='473.42' height='331.75'/>\n  <\/clipPath>\n <\/defs>\n <g id='svg_a4e55c11b09479d9_rootg' class='ggiraph-svg-rootg'>\n  <g clip-path='url(#svg_a4e55c11b09479d9_c1)'>\n   <rect x='0' y='0' width='504' height='360' fill='#FFFFFF' fill-opacity='1' stroke='#FFFFFF' stroke-opacity='1' stroke-width='0.75' stroke-linejoin='round' stroke-linecap='round' class='ggiraph-svg-bg'/>\n   <rect x='0' y='0' width='504' height='360' fill='#FFFFFF' fill-opacity='1' stroke='none'/>\n  <\/g>\n  <g clip-path='url(#svg_a4e55c11b09479d9_c2)'>\n   <polyline points='25.10,299.97 498.52,299.97' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='25.10,221.01 498.52,221.01' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='25.10,142.06 498.52,142.06' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='25.10,63.11 498.52,63.11' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='43.08,354.52 43.08,22.77' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='171.74,354.52 171.74,22.77' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='300.41,354.52 300.41,22.77' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='429.07,354.52 429.07,22.77' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='25.10,339.44 498.52,339.44' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='25.10,260.49 498.52,260.49' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='25.10,181.54 498.52,181.54' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='25.10,102.59 498.52,102.59' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='25.10,23.64 498.52,23.64' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='107.41,354.52 107.41,22.77' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='236.08,354.52 236.08,22.77' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='364.74,354.52 364.74,22.77' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='493.41,354.52 493.41,22.77' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <rect id='svg_a4e55c11b09479d9_e1' x='46.62' y='198.91' width='5.79' height='140.53' fill='#B3B3B3' fill-opacity='1' stroke='none' title='11: 178' data-id='11'/>\n   <rect id='svg_a4e55c11b09479d9_e2' x='53.05' y='288.12' width='5.79' height='51.32' fill='#B3B3B3' fill-opacity='1' stroke='none' title='12: 65' data-id='12'/>\n   <rect id='svg_a4e55c11b09479d9_e3' x='59.48' y='266.81' width='5.79' height='72.64' fill='#B3B3B3' fill-opacity='1' stroke='none' title='13: 92' data-id='13'/>\n   <rect id='svg_a4e55c11b09479d9_e4' x='65.92' y='266.81' width='5.79' height='72.64' fill='#B3B3B3' fill-opacity='1' stroke='none' title='14: 92' data-id='14'/>\n   <rect id='svg_a4e55c11b09479d9_e5' x='72.35' y='248.65' width='5.79' height='90.79' fill='#B3B3B3' fill-opacity='1' stroke='none' title='15: 115' data-id='15'/>\n   <rect id='svg_a4e55c11b09479d9_e6' x='78.78' y='267.6' width='5.79' height='71.85' fill='#B3B3B3' fill-opacity='1' stroke='none' title='16: 91' data-id='16'/>\n   <rect id='svg_a4e55c11b09479d9_e7' x='85.22' y='235.23' width='5.79' height='104.22' fill='#B3B3B3' fill-opacity='1' stroke='none' title='17: 132' data-id='17'/>\n   <rect id='svg_a4e55c11b09479d9_e8' x='91.65' y='207.59' width='5.79' height='131.85' fill='#B3B3B3' fill-opacity='1' stroke='none' title='18: 167' data-id='18'/>\n   <rect id='svg_a4e55c11b09479d9_e9' x='98.08' y='227.33' width='5.79' height='112.11' fill='#B3B3B3' fill-opacity='1' stroke='none' title='19: 142' data-id='19'/>\n   <rect id='svg_a4e55c11b09479d9_e10' x='104.52' y='194.96' width='5.79' height='144.48' fill='#B3B3B3' fill-opacity='1' stroke='none' title='20: 183' data-id='20'/>\n   <rect id='svg_a4e55c11b09479d9_e11' x='110.95' y='215.49' width='5.79' height='123.95' fill='#B3B3B3' fill-opacity='1' stroke='none' title='21: 157' data-id='21'/>\n   <rect id='svg_a4e55c11b09479d9_e12' x='117.38' y='211.54' width='5.79' height='127.9' fill='#B3B3B3' fill-opacity='1' stroke='none' title='22: 162' data-id='22'/>\n   <rect id='svg_a4e55c11b09479d9_e13' x='123.82' y='182.33' width='5.79' height='157.11' fill='#B3B3B3' fill-opacity='1' stroke='none' title='23: 199' data-id='23'/>\n   <rect id='svg_a4e55c11b09479d9_e14' x='130.25' y='178.38' width='5.79' height='161.06' fill='#B3B3B3' fill-opacity='1' stroke='none' title='24: 204' data-id='24'/>\n   <rect id='svg_a4e55c11b09479d9_e15' x='136.68' y='165.75' width='5.79' height='173.69' fill='#B3B3B3' fill-opacity='1' stroke='none' title='25: 220' data-id='25'/>\n   <rect id='svg_a4e55c11b09479d9_e16' x='143.12' y='168.12' width='5.79' height='171.32' fill='#B3B3B3' fill-opacity='1' stroke='none' title='26: 217' data-id='26'/>\n   <rect id='svg_a4e55c11b09479d9_e17' x='149.55' y='185.49' width='5.79' height='153.96' fill='#B3B3B3' fill-opacity='1' stroke='none' title='27: 195' data-id='27'/>\n   <rect id='svg_a4e55c11b09479d9_e18' x='155.98' y='180.75' width='5.79' height='158.69' fill='#B3B3B3' fill-opacity='1' stroke='none' title='28: 201' data-id='28'/>\n   <rect id='svg_a4e55c11b09479d9_e19' x='162.42' y='161.8' width='5.79' height='177.64' fill='#B3B3B3' fill-opacity='1' stroke='none' title='29: 225' data-id='29'/>\n   <rect id='svg_a4e55c11b09479d9_e20' x='168.85' y='150.75' width='5.79' height='188.69' fill='#B3B3B3' fill-opacity='1' stroke='none' title='30: 239' data-id='30'/>\n   <rect id='svg_a4e55c11b09479d9_e21' x='175.28' y='163.38' width='5.79' height='176.06' fill='#B3B3B3' fill-opacity='1' stroke='none' title='31: 223' data-id='31'/>\n   <rect id='svg_a4e55c11b09479d9_e22' x='181.72' y='98.64' width='5.79' height='240.8' fill='#B3B3B3' fill-opacity='1' stroke='none' title='32: 305' data-id='32'/>\n   <rect id='svg_a4e55c11b09479d9_e23' x='188.15' y='138.9' width='5.79' height='200.54' fill='#B3B3B3' fill-opacity='1' stroke='none' title='33: 254' data-id='33'/>\n   <rect id='svg_a4e55c11b09479d9_e24' x='194.58' y='121.54' width='5.79' height='217.91' fill='#B3B3B3' fill-opacity='1' stroke='none' title='34: 276' data-id='34'/>\n   <rect id='svg_a4e55c11b09479d9_e25' x='201.02' y='119.96' width='5.79' height='219.48' fill='#B3B3B3' fill-opacity='1' stroke='none' title='35: 278' data-id='35'/>\n   <rect id='svg_a4e55c11b09479d9_e26' x='207.45' y='103.38' width='5.79' height='236.06' fill='#B3B3B3' fill-opacity='1' stroke='none' title='36: 299' data-id='36'/>\n   <rect id='svg_a4e55c11b09479d9_e27' x='213.88' y='93.11' width='5.79' height='246.33' fill='#B3B3B3' fill-opacity='1' stroke='none' title='37: 312' data-id='37'/>\n   <rect id='svg_a4e55c11b09479d9_e28' x='220.32' y='100.22' width='5.79' height='239.22' fill='#B3B3B3' fill-opacity='1' stroke='none' title='38: 303' data-id='38'/>\n   <rect id='svg_a4e55c11b09479d9_e29' x='226.75' y='87.59' width='5.79' height='251.85' fill='#B3B3B3' fill-opacity='1' stroke='none' title='39: 319' data-id='39'/>\n   <rect id='svg_a4e55c11b09479d9_e30' x='233.18' y='90.74' width='5.79' height='248.7' fill='#B3B3B3' fill-opacity='1' stroke='none' title='40: 315' data-id='40'/>\n   <rect id='svg_a4e55c11b09479d9_e31' x='239.62' y='68.64' width='5.79' height='270.8' fill='#B3B3B3' fill-opacity='1' stroke='none' title='41: 343' data-id='41'/>\n   <rect id='svg_a4e55c11b09479d9_e32' x='246.05' y='67.85' width='5.79' height='271.59' fill='#B3B3B3' fill-opacity='1' stroke='none' title='42: 344' data-id='42'/>\n   <rect id='svg_a4e55c11b09479d9_e33' x='252.48' y='52.85' width='5.79' height='286.59' fill='#B3B3B3' fill-opacity='1' stroke='none' title='43: 363' data-id='43'/>\n   <rect id='svg_a4e55c11b09479d9_e34' x='258.91' y='83.64' width='5.79' height='255.8' fill='#B3B3B3' fill-opacity='1' stroke='none' title='44: 324' data-id='44'/>\n   <rect id='svg_a4e55c11b09479d9_e35' x='265.35' y='43.37' width='5.79' height='296.07' fill='#B3B3B3' fill-opacity='1' stroke='none' title='45: 375' data-id='45'/>\n   <rect id='svg_a4e55c11b09479d9_e36' x='271.78' y='85.22' width='5.79' height='254.22' fill='#B3B3B3' fill-opacity='1' stroke='none' title='46: 322' data-id='46'/>\n   <rect id='svg_a4e55c11b09479d9_e37' x='278.21' y='41' width='5.79' height='298.44' fill='#B3B3B3' fill-opacity='1' stroke='none' title='47: 378' data-id='47'/>\n   <rect id='svg_a4e55c11b09479d9_e38' x='284.65' y='71.01' width='5.79' height='268.43' fill='#B3B3B3' fill-opacity='1' stroke='none' title='48: 340' data-id='48'/>\n   <rect id='svg_a4e55c11b09479d9_e39' x='291.08' y='55.22' width='5.79' height='284.22' fill='#B3B3B3' fill-opacity='1' stroke='none' title='49: 360' data-id='49'/>\n   <rect id='svg_a4e55c11b09479d9_e40' x='297.51' y='37.85' width='5.79' height='301.59' fill='#B3B3B3' fill-opacity='1' stroke='none' title='50: 382' data-id='50'/>\n   <rect id='svg_a4e55c11b09479d9_e41' x='303.95' y='82.85' width='5.79' height='256.59' fill='#B3B3B3' fill-opacity='1' stroke='none' title='51: 325' data-id='51'/>\n   <rect id='svg_a4e55c11b09479d9_e42' x='310.38' y='89.95' width='5.79' height='249.49' fill='#B3B3B3' fill-opacity='1' stroke='none' title='52: 316' data-id='52'/>\n   <rect id='svg_a4e55c11b09479d9_e43' x='316.81' y='49.69' width='5.79' height='289.75' fill='#B3B3B3' fill-opacity='1' stroke='none' title='53: 367' data-id='53'/>\n   <rect id='svg_a4e55c11b09479d9_e44' x='323.25' y='84.43' width='5.79' height='255.01' fill='#B3B3B3' fill-opacity='1' stroke='none' title='54: 323' data-id='54'/>\n   <rect id='svg_a4e55c11b09479d9_e45' x='329.68' y='99.43' width='5.79' height='240.01' fill='#B3B3B3' fill-opacity='1' stroke='none' title='55: 304' data-id='55'/>\n   <rect id='svg_a4e55c11b09479d9_e46' x='336.11' y='103.38' width='5.79' height='236.06' fill='#B3B3B3' fill-opacity='1' stroke='none' title='56: 299' data-id='56'/>\n   <rect id='svg_a4e55c11b09479d9_e47' x='342.55' y='84.43' width='5.79' height='255.01' fill='#B3B3B3' fill-opacity='1' stroke='none' title='57: 323' data-id='57'/>\n   <rect id='svg_a4e55c11b09479d9_e48' x='348.98' y='99.43' width='5.79' height='240.01' fill='#B3B3B3' fill-opacity='1' stroke='none' title='58: 304' data-id='58'/>\n   <rect id='svg_a4e55c11b09479d9_e49' x='355.41' y='88.38' width='5.79' height='251.07' fill='#B3B3B3' fill-opacity='1' stroke='none' title='59: 318' data-id='59'/>\n   <rect id='svg_a4e55c11b09479d9_e50' x='361.85' y='107.32' width='5.79' height='232.12' fill='#B3B3B3' fill-opacity='1' stroke='none' title='60: 294' data-id='60'/>\n   <rect id='svg_a4e55c11b09479d9_e51' x='368.28' y='146.8' width='5.79' height='192.64' fill='#B3B3B3' fill-opacity='1' stroke='none' title='61: 244' data-id='61'/>\n   <rect id='svg_a4e55c11b09479d9_e52' x='374.71' y='146.01' width='5.79' height='193.43' fill='#B3B3B3' fill-opacity='1' stroke='none' title='62: 245' data-id='62'/>\n   <rect id='svg_a4e55c11b09479d9_e53' x='381.15' y='154.69' width='5.79' height='184.75' fill='#B3B3B3' fill-opacity='1' stroke='none' title='63: 234' data-id='63'/>\n   <rect id='svg_a4e55c11b09479d9_e54' x='387.58' y='200.49' width='5.79' height='138.95' fill='#B3B3B3' fill-opacity='1' stroke='none' title='64: 176' data-id='64'/>\n   <rect id='svg_a4e55c11b09479d9_e55' x='394.01' y='184.7' width='5.79' height='154.74' fill='#B3B3B3' fill-opacity='1' stroke='none' title='65: 196' data-id='65'/>\n   <rect id='svg_a4e55c11b09479d9_e56' x='400.45' y='178.38' width='5.79' height='161.06' fill='#B3B3B3' fill-opacity='1' stroke='none' title='66: 204' data-id='66'/>\n   <rect id='svg_a4e55c11b09479d9_e57' x='406.88' y='199.7' width='5.79' height='139.74' fill='#B3B3B3' fill-opacity='1' stroke='none' title='67: 177' data-id='67'/>\n   <rect id='svg_a4e55c11b09479d9_e58' x='413.31' y='231.28' width='5.79' height='108.16' fill='#B3B3B3' fill-opacity='1' stroke='none' title='68: 137' data-id='68'/>\n   <rect id='svg_a4e55c11b09479d9_e59' x='419.75' y='251.02' width='5.79' height='88.43' fill='#B3B3B3' fill-opacity='1' stroke='none' title='69: 112' data-id='69'/>\n   <rect id='svg_a4e55c11b09479d9_e60' x='426.18' y='247.86' width='5.79' height='91.58' fill='#B3B3B3' fill-opacity='1' stroke='none' title='70: 116' data-id='70'/>\n   <rect id='svg_a4e55c11b09479d9_e61' x='432.61' y='252.59' width='5.79' height='86.85' fill='#B3B3B3' fill-opacity='1' stroke='none' title='71: 110' data-id='71'/>\n   <rect id='svg_a4e55c11b09479d9_e62' x='439.05' y='275.49' width='5.79' height='63.95' fill='#B3B3B3' fill-opacity='1' stroke='none' title='72: 81' data-id='72'/>\n   <rect id='svg_a4e55c11b09479d9_e63' x='445.48' y='303.91' width='5.79' height='35.53' fill='#B3B3B3' fill-opacity='1' stroke='none' title='73: 45' data-id='73'/>\n   <rect id='svg_a4e55c11b09479d9_e64' x='451.91' y='306.28' width='5.79' height='33.16' fill='#B3B3B3' fill-opacity='1' stroke='none' title='74: 42' data-id='74'/>\n   <rect id='svg_a4e55c11b09479d9_e65' x='458.35' y='311.81' width='5.79' height='27.63' fill='#B3B3B3' fill-opacity='1' stroke='none' title='75: 35' data-id='75'/>\n   <rect id='svg_a4e55c11b09479d9_e66' x='464.78' y='325.23' width='5.79' height='14.21' fill='#B3B3B3' fill-opacity='1' stroke='none' title='76: 18' data-id='76'/>\n   <rect id='svg_a4e55c11b09479d9_e67' x='471.21' y='328.39' width='5.79' height='11.05' fill='#B3B3B3' fill-opacity='1' stroke='none' title='77: 14' data-id='77'/>\n   <line x1='261.81' y1='354.52' x2='261.81' y2='22.77' stroke='#000000' stroke-opacity='1' stroke-width='1.07' stroke-dasharray='4,4' stroke-linejoin='round' stroke-linecap='butt'/>\n   <text x='421.63' y='34.51' font-size='8.54pt' font-family='Liberation Sans'>Mean = 44.00<\/text>\n  <\/g>\n  <g clip-path='url(#svg_a4e55c11b09479d9_c1)'>\n   <text x='15.27' y='342.47' font-size='6.6pt' font-family='Liberation Sans' fill='#4D4D4D' fill-opacity='1'>0<\/text>\n   <text x='5.48' y='263.52' font-size='6.6pt' font-family='Liberation Sans' fill='#4D4D4D' fill-opacity='1'>100<\/text>\n   <text x='5.48' y='184.57' font-size='6.6pt' font-family='Liberation Sans' fill='#4D4D4D' fill-opacity='1'>200<\/text>\n   <text x='5.48' y='105.61' font-size='6.6pt' font-family='Liberation Sans' fill='#4D4D4D' fill-opacity='1'>300<\/text>\n   <text x='5.48' y='26.66' font-size='6.6pt' font-family='Liberation Sans' fill='#4D4D4D' fill-opacity='1'>400<\/text>\n   <text x='25.1' y='14.55' font-size='9.9pt' font-family='Liberation Sans'>Art Interest distribution<\/text>\n  <\/g>\n <\/g>\n<\/svg>","js":null,"uid":"svg_a4e55c11b09479d9","ratio":1.4,"settings":{"tooltip":{"css":".tooltip_SVGID_ { padding:5px;background:black;color:white;border-radius:2px;text-align:left; ; position:absolute;pointer-events:none;z-index:9999;}","placement":"doc","opacity":0.9,"offx":10,"offy":10,"use_cursor_pos":true,"use_fill":false,"use_stroke":false,"delay_over":200,"delay_out":500},"hover":{"css":".hover_data_SVGID_ { fill:orange;stroke:black;cursor:pointer; }\ntext.hover_data_SVGID_ { stroke:none;fill:orange; }\ncircle.hover_data_SVGID_ { fill:orange;stroke:black; }\nline.hover_data_SVGID_, polyline.hover_data_SVGID_ { fill:none;stroke:orange; }\nrect.hover_data_SVGID_, polygon.hover_data_SVGID_, path.hover_data_SVGID_ { fill:orange;stroke:none; }\nimage.hover_data_SVGID_ { stroke:orange; }","reactive":true,"nearest_distance":null,"linked":false},"hover_inv":{"css":""},"hover_key":{"css":".hover_key_SVGID_ { fill:orange;stroke:black;cursor:pointer; }\ntext.hover_key_SVGID_ { stroke:none;fill:orange; }\ncircle.hover_key_SVGID_ { fill:orange;stroke:black; }\nline.hover_key_SVGID_, polyline.hover_key_SVGID_ { fill:none;stroke:orange; }\nrect.hover_key_SVGID_, polygon.hover_key_SVGID_, path.hover_key_SVGID_ { fill:orange;stroke:none; }\nimage.hover_key_SVGID_ { stroke:orange; }","reactive":true},"hover_theme":{"css":".hover_theme_SVGID_ { fill:orange;stroke:black;cursor:pointer; }\ntext.hover_theme_SVGID_ { stroke:none;fill:orange; }\ncircle.hover_theme_SVGID_ { fill:orange;stroke:black; }\nline.hover_theme_SVGID_, polyline.hover_theme_SVGID_ { fill:none;stroke:orange; }\nrect.hover_theme_SVGID_, polygon.hover_theme_SVGID_, path.hover_theme_SVGID_ { fill:orange;stroke:none; }\nimage.hover_theme_SVGID_ { stroke:orange; }","reactive":true},"select":{"css":".select_data_SVGID_ { fill:red;stroke:black;cursor:pointer; }\ntext.select_data_SVGID_ { stroke:none;fill:red; }\ncircle.select_data_SVGID_ { fill:red;stroke:black; }\nline.select_data_SVGID_, polyline.select_data_SVGID_ { fill:none;stroke:red; }\nrect.select_data_SVGID_, polygon.select_data_SVGID_, path.select_data_SVGID_ { fill:red;stroke:none; }\nimage.select_data_SVGID_ { stroke:red; }","type":"multiple","only_shiny":true,"selected":[],"linked":false},"select_inv":{"css":""},"select_key":{"css":".select_key_SVGID_ { fill:red;stroke:black;cursor:pointer; }\ntext.select_key_SVGID_ { stroke:none;fill:red; }\ncircle.select_key_SVGID_ { fill:red;stroke:black; }\nline.select_key_SVGID_, polyline.select_key_SVGID_ { fill:none;stroke:red; }\nrect.select_key_SVGID_, polygon.select_key_SVGID_, path.select_key_SVGID_ { fill:red;stroke:none; }\nimage.select_key_SVGID_ { stroke:red; }","type":"single","only_shiny":true,"selected":[]},"select_theme":{"css":".select_theme_SVGID_ { fill:red;stroke:black;cursor:pointer; }\ntext.select_theme_SVGID_ { stroke:none;fill:red; }\ncircle.select_theme_SVGID_ { fill:red;stroke:black; }\nline.select_theme_SVGID_, polyline.select_theme_SVGID_ { fill:none;stroke:red; }\nrect.select_theme_SVGID_, polygon.select_theme_SVGID_, path.select_theme_SVGID_ { fill:red;stroke:none; }\nimage.select_theme_SVGID_ { stroke:red; }","type":"single","only_shiny":true,"selected":[]},"zoom":{"min":1,"max":1,"duration":300,"default_on":false},"toolbar":{"position":"topright","pngname":"diagram","tooltips":null,"fixed":false,"hidden":[],"delay_over":200,"delay_out":500},"sizing":{"rescale":true,"width":1}}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>At the end you can find the percentage of responses selected for each items <a href="#answers-for-the-singular-items">Here</a>.</p>
+<section id="internal-reliability" class="level2">
+<h2 class="anchored" data-anchor-id="internal-reliability">Internal reliability</h2>
+<p>We calculate internal reliability with McDonald’s <span class="math inline">\(\omega\)</span>, which is considered acceptable when above .7. Thus this shows good internal reliability</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9398467</code></pre>
+</div>
+</div>
+</section>
+<section id="confirmatory-factor-analysis-cfa" class="level2">
+<h2 class="anchored" data-anchor-id="confirmatory-factor-analysis-cfa">Confirmatory factor analysis (CFA)</h2>
+<p>For the CFA, I will keep in mind the following criteria:</p>
+<ul>
+<li>CFI &gt; .9</li>
+<li>TLI &gt; .9</li>
+<li>RMSEA &lt; .8</li>
+<li>SRMR &lt; .8</li>
+</ul>
+<section id="one-factor-model" class="level3">
+<h3 class="anchored" data-anchor-id="one-factor-model">One factor model</h3>
+<p>Firstly, I will carry a one factor model with the additional correlation that we established in the <a href="index.html">Introduction</a> (Residual correlation between AI_1_3 and AI_1_7; and between AI_2_2 and AI_2_4).</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>         chisq             df         pvalue            cfi            tli 
+      6900.462         42.000          0.000          0.935          0.915 
+         rmsea rmsea.ci.lower rmsea.ci.upper   rmsea.pvalue           srmr 
+         0.104          0.102          0.106          0.000          0.052 </code></pre>
+</div>
+</div>
+<p>The CFI, TLI and SRMR indicate a good fit, while the RMSEA is above the mentioned criteria.</p>
+<p>Thus, I present the factor loadings, which I judged keeping the general rule of thumb that a factor loading higher than .70 is excellent and above .50 is good.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>        lhs    rhs est.std pvalue
+1  interest AI_1_1   0.634      0
+2  interest AI_1_2   0.874      0
+3  interest AI_1_3   0.694      0
+4  interest AI_1_4   0.898      0
+5  interest AI_1_5   0.872      0
+6  interest AI_1_6   0.823      0
+7  interest AI_1_7   0.514      0
+8  interest AI_2_1   0.641      0
+9  interest AI_2_2   0.640      0
+10 interest AI_2_3   0.707      0
+11 interest AI_2_4   0.564      0</code></pre>
+</div>
+</div>
+<p>All the items are above .5, but we can notice 4 items below .7: AI_1_1, AI_1_3, AI_1_7, AI_2_1, AI_2_2, AI_2_4. You can find the content of the items <a href="#vaiak_items">here</a>.</p>
+<p>Exploring the correlation of the residuals help us understand better the reason. The two empty boxes represent the residuals correlation that are already included in the model.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We notice a higher positive correlation among the AI_2 items compared to the others. This, plus the lower factor loadings of those items seems to suggest than a better model would separate these items from the rests.</p>
+</section>
+<section id="two-factors-model" class="level3">
+<h3 class="anchored" data-anchor-id="two-factors-model">Two factors model</h3>
+<p>I proposed a different model, where the two parts of the scale are two separate factors (interest_subjective and interest_behaviour) with a hierarchical higher factor (interest).</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>         chisq             df         pvalue            cfi            tli 
+      4557.568         42.000          0.000          0.957          0.944 
+         rmsea rmsea.ci.lower rmsea.ci.upper   rmsea.pvalue           srmr 
+         0.085          0.083          0.087          0.000          0.043 </code></pre>
+</div>
+</div>
+<p>The indexes all improved, but the RMSEA is still above the criteria.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>             lhs           rhs est.std pvalue
+1  interest_subj        AI_1_1   0.640      0
+2  interest_subj        AI_1_2   0.879      0
+3  interest_subj        AI_1_3   0.697      0
+4  interest_subj        AI_1_4   0.901      0
+5  interest_subj        AI_1_5   0.875      0
+6  interest_subj        AI_1_6   0.823      0
+7  interest_subj        AI_1_7   0.523      0
+8  interest_beha        AI_2_1   0.778      0
+9  interest_beha        AI_2_2   0.790      0
+10 interest_beha        AI_2_3   0.720      0
+11 interest_beha        AI_2_4   0.745      0
+12      interest interest_subj   0.887      0
+13      interest interest_beha   0.903      0</code></pre>
+</div>
+</div>
+<p>Here as well all the factor loadings have improved, with AI_1_1, AI_1_3 and AI_1_7 still below .7.</p>
+</section>
+</section>
+<section id="item-responce-theory-irt" class="level2">
+<h2 class="anchored" data-anchor-id="item-responce-theory-irt">Item Responce Theory (IRT)</h2>
+<p>I carry out two distinctive IRT. One for the entire scale, the other with the two subfactors (interest_subjective and interest_behaviour) divided.</p>
+<section id="one-factor-model-1" class="level3">
+<h3 class="anchored" data-anchor-id="one-factor-model-1">One factor model</h3>
+<p>This graph represent how informative on average the items are in relation to the ability of the participants (<span class="math inline">\(\theta\)</span>). The dotted line represents the mean <span class="math inline">\(\theta\)</span>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can notice that it is in general pretty normally distributed around 0, with a little skewness into the lower values. This means that it is more informative for the people with lower ability. I think it is interesting that is focused that the majority of distribution is below the mean.</p>
+<p>We carried out analysis for the individual items.</p>
+<p>For each item, <span class="math inline">\(a\)</span> represents the discrimination parameter, i.e.&nbsp;how much the value vary in relation to the ability <span class="math inline">\(\theta\)</span>. A high <span class="math inline">\(a\)</span> means that the probability of answering an item correctly changes very sharply as <span class="math inline">\(\theta\)</span> increases.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>         item        a
+AI_1_1 AI_1_1 1.627143
+AI_1_2 AI_1_2 3.609720
+AI_1_3 AI_1_3 1.922673
+AI_1_4 AI_1_4 4.268211
+AI_1_5 AI_1_5 3.569060
+AI_1_6 AI_1_6 2.830077
+AI_1_7 AI_1_7 1.196298
+AI_2_1 AI_2_1 1.699072
+AI_2_2 AI_2_2 1.982284
+AI_2_3 AI_2_3 1.912126
+AI_2_4 AI_2_4 1.597556</code></pre>
+</div>
+</div>
+<p>We can visualize the same data graphically.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can observe than the items already noticed before (AI_1_1, AI_1_3 and AI_1_7) are the ones with the lower <span class="math inline">\(a\)</span>. At the same times, all the items from the AI_2 are also on on the lower parts of the graph.</p>
+<p><span class="math inline">\(b\)</span> represents the how much ability the participants needs to pass from a responce (e.g.&nbsp;1) to the next (2). For example, in AI_1_1 a participant with an ability of least 0.08802223 (b5) has a 50% probability of responding 6 or higher. The higher the <span class="math inline">\(b\)</span> the more difficult it is.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>               b1         b2         b3          b4         b5        b6
+AI_1_1 -2.1725308 -1.4770878 -1.0093668 -0.56127415 0.08802223 0.7977909
+AI_1_2 -1.6672805 -1.0107203 -0.5882420 -0.14221644 0.39691013 0.9252439
+AI_1_3 -1.8820529 -1.0396437 -0.4783893  0.02842550 0.68190660 1.3759026
+AI_1_4 -1.9040735 -1.2581322 -0.8444593 -0.39831958 0.18917473 0.7475290
+AI_1_5 -1.5100795 -0.8560465 -0.4040253  0.04385434 0.57259977 1.1128610
+AI_1_6 -1.7923540 -1.1400054 -0.6946828 -0.25463481 0.35204300 0.9927058
+AI_1_7 -1.2367692 -0.3268036  0.2711486  0.82549447 1.51702099 2.3160249
+AI_2_1 -0.9901047 -0.2068619  0.5327099  1.43651440 2.37902346 3.2163118
+AI_2_2 -0.2970265  0.1938885  0.6467525  1.09622430 1.62715866 2.0974810
+AI_2_3 -1.5226230 -1.0726677 -0.6564876 -0.20683317 0.31597904 0.7875251
+AI_2_4 -0.2019274  0.4575682  1.0305941  1.69867175 2.40810295 3.0007538</code></pre>
+</div>
+</div>
+<p>The graph represents the above shown data. Each box is an item and each line represents the probability to answer in a specific way (P1 probability to answer 1). The slope of the lines represent the <span class="math inline">\(a\)</span>, the steeper it is, the higher <span class="math inline">\(a\)</span> is, the more efficient is the question in distinguish between individuals who know the material and those who do not.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Subsequentially we check how much the factor (Art Interest) is linked to the item. <span class="math inline">\(F1\)</span> represents the factor loading, while <span class="math inline">\(h2\)</span> is how much variability of the item is explained by the factor.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>          F1    h2
+AI_1_1 0.691 0.478
+AI_1_2 0.904 0.818
+AI_1_3 0.749 0.561
+AI_1_4 0.929 0.863
+AI_1_5 0.903 0.815
+AI_1_6 0.857 0.734
+AI_1_7 0.575 0.331
+AI_2_1 0.706 0.499
+AI_2_2 0.759 0.576
+AI_2_3 0.747 0.558
+AI_2_4 0.684 0.468
+
+SS loadings:  6.7 
+Proportion Var:  0.609 
+
+Factor correlations: 
+
+   F1
+F1  1</code></pre>
+</div>
+</div>
+</section>
+<section id="two-factors-model-1" class="level3">
+<h3 class="anchored" data-anchor-id="two-factors-model-1">Two factors model</h3>
+<p>Given that the two factors showed a better fit, I also tested an IRT by analysis the two subscale separately.</p>
+<section id="subjective-art-interst" class="level4">
+<h4 class="anchored" data-anchor-id="subjective-art-interst">Subjective Art Interst</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>         item        a
+AI_1_1 AI_1_1 1.705655
+AI_1_2 AI_1_2 3.849985
+AI_1_3 AI_1_3 1.885755
+AI_1_4 AI_1_4 4.614852
+AI_1_5 AI_1_5 3.678196
+AI_1_6 AI_1_6 2.857463
+AI_1_7 AI_1_7 1.203885</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>              b1         b2         b3          b4         b5        b6
+AI_1_1 -2.116202 -1.4412783 -0.9864703 -0.55094892 0.08103164 0.7749443
+AI_1_2 -1.642765 -0.9974585 -0.5810888 -0.14448253 0.38431028 0.9087889
+AI_1_3 -1.895000 -1.0483074 -0.4854658  0.02270845 0.68100128 1.3864207
+AI_1_4 -1.877534 -1.2408114 -0.8339994 -0.39531830 0.18051168 0.7318184
+AI_1_5 -1.498210 -0.8514845 -0.4045646  0.03530847 0.55810660 1.1023198
+AI_1_6 -1.782100 -1.1356265 -0.6942101 -0.25855444 0.34333490 0.9853742
+AI_1_7 -1.230472 -0.3270215  0.2670666  0.81848237 1.50773237 2.3089304</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>          F1    h2
+AI_1_1 0.708 0.501
+AI_1_2 0.915 0.837
+AI_1_3 0.742 0.551
+AI_1_4 0.938 0.880
+AI_1_5 0.908 0.824
+AI_1_6 0.859 0.738
+AI_1_7 0.577 0.333
+
+SS loadings:  4.664 
+Proportion Var:  0.666 
+
+Factor correlations: 
+
+   F1
+F1  1</code></pre>
+</div>
+</div>
+</section>
+<section id="behavioural-art-interst" class="level4">
+<h4 class="anchored" data-anchor-id="behavioural-art-interst">Behavioural Art Interst</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>         item        a
+AI_2_1 AI_2_1 2.553424
+AI_2_2 AI_2_2 2.803824
+AI_2_3 AI_2_3 1.870184
+AI_2_4 AI_2_4 2.750345</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>               b1         b2         b3         b4        b5       b6
+AI_2_1 -0.8311216 -0.1677608  0.4593693  1.2327810 2.0282668 2.704874
+AI_2_2 -0.2670385  0.1754409  0.5833415  0.9868365 1.4612866 1.870362
+AI_2_3 -1.5227547 -1.0540095 -0.6322049 -0.1834482 0.3340058 0.799489
+AI_2_4 -0.1638815  0.3718008  0.8422416  1.3855929 1.9424374 2.383774</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-29-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>          F1    h2
+AI_2_1 0.832 0.692
+AI_2_2 0.855 0.731
+AI_2_3 0.740 0.547
+AI_2_4 0.850 0.723
+
+SS loadings:  2.693 
+Proportion Var:  0.673 
+
+Factor correlations: 
+
+   F1
+F1  1</code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="distribution" class="level2">
+<h2 class="anchored" data-anchor-id="distribution">Distribution</h2>
+<p>Following Anna Panzeri adviced for the CFA I plan 15 participants for parameter (11 Factor loadings, 11 Residual variances and 11 Intercepts). Thus I will keep 15 x 33 = 495 participants.</p>
+<section id="language" class="level3">
+<h3 class="anchored" data-anchor-id="language">Language</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Group</th>
+<th style="text-align: center;">Number of participants</th>
+<th style="text-align: center;">Mean</th>
+<th style="text-align: center;">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Czech</td>
+<td style="text-align: center;">708</td>
+<td style="text-align: center;">51.01</td>
+<td style="text-align: center;">12.70</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">English</td>
+<td style="text-align: center;">5918</td>
+<td style="text-align: center;">45.67</td>
+<td style="text-align: center;">14.56</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">German</td>
+<td style="text-align: center;">3345</td>
+<td style="text-align: center;">42.28</td>
+<td style="text-align: center;">14.39</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Italian</td>
+<td style="text-align: center;">537</td>
+<td style="text-align: center;">50.67</td>
+<td style="text-align: center;">12.60</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Japanese</td>
+<td style="text-align: center;">936</td>
+<td style="text-align: center;">27.96</td>
+<td style="text-align: center;">13.02</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Russian</td>
+<td style="text-align: center;">720</td>
+<td style="text-align: center;">49.76</td>
+<td style="text-align: center;">14.57</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">1970</td>
+<td style="text-align: center;">39.57</td>
+<td style="text-align: center;">15.14</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="geographical-area-of-origin" class="level3">
+<h3 class="anchored" data-anchor-id="geographical-area-of-origin">Geographical area of origin</h3>
+<p>I do not think how interesting this analysis may be.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Group</th>
+<th style="text-align: center;">Number of participants</th>
+<th style="text-align: center;">Mean</th>
+<th style="text-align: center;">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Belgium</td>
+<td style="text-align: center;">523</td>
+<td style="text-align: center;">38.68</td>
+<td style="text-align: center;">13.94</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Czechia</td>
+<td style="text-align: center;">662</td>
+<td style="text-align: center;">50.76</td>
+<td style="text-align: center;">12.63</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">United Kingdom</td>
+<td style="text-align: center;">1348</td>
+<td style="text-align: center;">43.10</td>
+<td style="text-align: center;">16.06</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">10283</td>
+<td style="text-align: center;">42.65</td>
+<td style="text-align: center;">15.32</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="expertise" class="level3">
+<h3 class="anchored" data-anchor-id="expertise">Expertise</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Group</th>
+<th style="text-align: center;">Number of participants</th>
+<th style="text-align: center;">Mean</th>
+<th style="text-align: center;">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Expert</td>
+<td style="text-align: center;">1460</td>
+<td style="text-align: center;">56.81</td>
+<td style="text-align: center;">11.50</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Lay person</td>
+<td style="text-align: center;">5847</td>
+<td style="text-align: center;">40.09</td>
+<td style="text-align: center;">14.63</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">8092</td>
+<td style="text-align: center;">43.72</td>
+<td style="text-align: center;">14.88</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="context" class="level3">
+<h3 class="anchored" data-anchor-id="context">Context</h3>
+<p>For the context I would exclude the classroom, given that it has far less participants, and that it is obviously for the almost totality composed by students. The other groups (Museum, Lab and Online) could theoretically also include other people.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-34-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Group</th>
+<th style="text-align: center;">Number of participants</th>
+<th style="text-align: center;">Mean</th>
+<th style="text-align: center;">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Lab</td>
+<td style="text-align: center;">2717</td>
+<td style="text-align: center;">44.28</td>
+<td style="text-align: center;">14.70</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Museum</td>
+<td style="text-align: center;">1958</td>
+<td style="text-align: center;">49.82</td>
+<td style="text-align: center;">13.32</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Online</td>
+<td style="text-align: center;">9351</td>
+<td style="text-align: center;">43.30</td>
+<td style="text-align: center;">14.85</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">943</td>
+<td style="text-align: center;">30.40</td>
+<td style="text-align: center;">15.01</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="medium" class="level3">
+<h3 class="anchored" data-anchor-id="medium">Medium</h3>
+<p>For the Medium we do not have enough info. I do not think this is a problem, given that the Medium was considered more important to check for the AK scale.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Group</th>
+<th style="text-align: center;">Number of participants</th>
+<th style="text-align: center;">Mean</th>
+<th style="text-align: center;">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Computer</td>
+<td style="text-align: center;">367</td>
+<td style="text-align: center;">36.48</td>
+<td style="text-align: center;">13.18</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Physical</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">45.02</td>
+<td style="text-align: center;">13.39</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Projected</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">36.25</td>
+<td style="text-align: center;">14.05</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Tablet</td>
+<td style="text-align: center;">292</td>
+<td style="text-align: center;">43.68</td>
+<td style="text-align: center;">14.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">14599</td>
+<td style="text-align: center;">43.81</td>
+<td style="text-align: center;">15.25</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="extra" class="level1">
+<h1>Extra</h1>
+<section id="vaiak-items" class="level2">
+<h2 class="anchored" data-anchor-id="vaiak-items">VAIAK items</h2>
+<p>Answers from 1 (Not at all) to 7 (Very Much)</p>
+<ul>
+<li>AI_1_1 : I enjoyed visiting art classes as a subject in school</li>
+<li>AI_1_2 : I enjoy talking about art with others</li>
+<li>AI_1_3 : I have many friends/acquaintances who are interested in art</li>
+<li>AI_1_4 : I am interested in art</li>
+<li>AI_1_5 : I am always looking for new artistic impressions and experiences</li>
+<li>AI_1_6 : During my everyday life I spontaneously notice art objects that I find fascinating</li>
+<li>AI_1_7 : I come from a family that is interested in art</li>
+</ul>
+<p>Answers from 1 (less than once per year) to 7 (once per week or more often)</p>
+<ul>
+<li>AI_2_1 : How often do you visit art museums or art galleries on average?</li>
+<li>AI_2_2 : How often do you read books, magazines or catalogues about art?</li>
+<li>AI_2_3 : How often do you view images of artworks (picture books, internet, etc.)?</li>
+<li>AI_2_4 : How often do you visit events about art or art history (seminars, projects, festivals, etc.)?</li>
+</ul>
+</section>
+<section id="answers-for-the-singular-items" class="level2">
+<h2 class="anchored" data-anchor-id="answers-for-the-singular-items">Answers for the singular items</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-8.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-9.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-10.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="First_analysis_AI_files/figure-html/unnamed-chunk-36-11.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
