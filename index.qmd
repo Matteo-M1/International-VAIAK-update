@@ -18,9 +18,6 @@ execute:
 
 [AI analysis ->](First_analysis_AI.html)
 
-
-[AK analysis ->](First_analysis_AK.html)
-
 ```{r}
 library(dplyr)
 library(tidyr)
