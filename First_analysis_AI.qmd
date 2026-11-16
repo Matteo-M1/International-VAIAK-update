@@ -35,7 +35,7 @@ library(htmlwidgets) # interaction online
 data = read.csv("International_vaiak.csv")
 ```
 
-# Art Interest
+# Introduction 
 
 ```{r}
 data_ai = data %>%
@@ -44,6 +44,22 @@ data_ai = data %>%
   mutate(
     Expertise = factor(ArtExp_Expertise_cluster))
 ```
+
+In this report I present the data form the Art Interest (AI) scale. 
+
+I am aware it is quite long, I just wanted to be sure that all the necessary information were already available.
+
+This report is divided into two parts: in the first one I present the analysis for the entire sample (internal reliability, CFA and IRT). In the second one I present the different factors for the possible Multigroup CFA and the distributions of the levels
+
+Some take out ideas: 
+
+In my opinion after the CFAs, the model that I would adopt is the two factor hierarchical model. 
+
+The IRT shows that there are some items that behave in a not ideal way, but nothing seems alarming to me, except maybe for item AI_1_7. In general the scale seems very easy, with the AI_2 items be in general more difficult. 
+
+For the Multigroup CFA, I would only carry out for the factors: Language, Expertise and Context. 
+
+# First part (full sample)
 
 This graph represent the distribution of the scores of the AI scale. The line in the middle is the Mean.
 
@@ -93,7 +109,7 @@ omega_ai = data_ai %>%                              # Omega analysis Art Interes
   omega
 ```
 
-We calculate internal reliability with McDonald's $\omega$, which is considered acceptable when above .7. Thus this shows good internal reliability
+I calculate internal reliability with McDonald's $\omega$, which is considered acceptable when above .7. Thus this shows good internal reliability
 
 ```{r}
 omega_ai$omega.tot
@@ -264,19 +280,10 @@ ggplot(df, aes(x = theta, y=information)) +
         legend.background = element_rect(
           color = "black",  
           linetype = "solid")) +
-  geom_vline(
-    xintercept = mean(test_info),
-    linetype = "dashed") + 
-  annotate(
-    "text", 
-    x = Inf, y = Inf, 
-    label = sprintf("Mean = %.2f", mean(test_info)), 
-    hjust = 1.1, vjust = 1.5, 
-    size = 4, color = "black") + 
   ggtitle("Information x ability for Art Interest")
 ```
 
-We can notice that it is in general pretty normally distributed around 0, with a little skewness into the lower values. This means that it is more informative for the people with lower ability. I think it is interesting that is focused that the majority of distribution is below the mean. 
+We can notice that it is in general pretty normally distributed around 0, with a little skewness into the lower values. This means that it is more informative for the people with lower ability.
 
 We carried out analysis for the individual items. 
 
@@ -327,7 +334,7 @@ summary(AI_grm) # threshold check
 
 ### Two factors model
 
-Given that the two factors showed a better fit, I also tested an IRT by analysis the two subscale separately.
+Given that the two factors showed a better fit, I also tested an IRT by analysis the two subscales separately.
 
 #### Subjective Art Interst
 
@@ -349,6 +356,9 @@ df = data.frame(
   theta = theta, 
   information = test_info)
 
+N = sum(df$test_info)                         # total number of participants
+m = weighted.mean(data_ai_score$Art_Interest, data_ai_score$n)
+
 ggplot(df, aes(x = theta, y=information)) +
   geom_line(color = "black", linewidth = 1.2) +
       scale_fill_manual(values=c("black")) +
@@ -365,15 +375,6 @@ ggplot(df, aes(x = theta, y=information)) +
         legend.background = element_rect(
           color = "black",  
           linetype = "solid")) +
-  geom_vline(
-    xintercept = mean(test_info),
-    linetype = "dashed") + 
-  annotate(
-    "text", 
-    x = Inf, y = Inf, 
-    label = sprintf("Mean = %.2f", mean(test_info)), 
-    hjust = 1.1, vjust = 1.5, 
-    size = 4, color = "black") + 
   ggtitle("Information x ability for Subjective Art Interest")
 ```
 
@@ -393,6 +394,8 @@ ggplot(plot_data, aes(y= a, x = item)) +
   theme_minimal() + 
   ggtitle("Discrimination parameter a of the Subjective AI items")
 ```
+
+This results seem in line with the one for the full scale, with the item A_1_7 alway having the lowest slope $a$. 
 
 ```{r}
 data.frame(coef_item[, 2:7])
@@ -443,17 +446,10 @@ ggplot(df, aes(x = theta, y=information)) +
         legend.background = element_rect(
           color = "black",  
           linetype = "solid")) +
-  geom_vline(
-    xintercept = mean(test_info),
-    linetype = "dashed") + 
-  annotate(
-    "text", 
-    x = Inf, y = Inf, 
-    label = sprintf("Mean = %.2f", mean(test_info)), 
-    hjust = 1.1, vjust = 1.5, 
-    size = 4, color = "black") + 
   ggtitle("Information x ability for Behavioural Art Interest")
 ```
+
+Compare to the other parts, this subscale seems to be harder. 
 
 ```{r}
 coef_item = coef$items
@@ -485,11 +481,11 @@ plot(AI_grm, type = "trace",
 summary(AI_grm) # threshold check
 ```
 
-## Distribution
+# Second part (Different levels)
 
-Following Anna Panzeri adviced for the CFA I plan 15 participants for parameter (11 Factor loadings, 11 Residual variances and 11 Intercepts). Thus I will keep 15 x 33 = 495 participants. 
+Following Anna Panzeri advice for the CFA I plan 15 participants for parameter (11 Factor loadings, 11 Residual variances and 11 Intercepts). Thus I will keep 15 x 33 = 495 participants. 
 
-### Language
+## Language
 
 ```{r}
 data_ai_language = data_ai %>%
@@ -520,7 +516,7 @@ knitr::kable(
   align = "c")
 ```
 
-### Geographical area of origin
+## Geographical area of origin
 
 I do not think how interesting this analysis may be. 
 
@@ -604,7 +600,7 @@ knitr::kable(
   align = "c")
 ```
 
-### Expertise
+## Expertise
 
 ```{r}
 data_ai_expertise = data_ai %>%
@@ -635,7 +631,7 @@ knitr::kable(
   align = "c")
 ```
 
-### Context
+## Context
 
 For the context I would exclude the classroom, given that it has far less participants, and that it is obviously for the almost totality composed by students. The other groups (Museum, Lab and Online) could theoretically also include other people. 
 
@@ -668,7 +664,7 @@ knitr::kable(
   align = "c")
 ```
 
-### Medium
+## Medium
 
 For the Medium we do not have enough info. I do not think this is a problem, given that the Medium was considered more important to check for the AK scale.
 
