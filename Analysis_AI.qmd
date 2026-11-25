@@ -261,7 +261,7 @@ ggplot(table_data, aes(y= Item, x = Loading)) +
     geom_vline(xintercept = 0.7, linetype = "dashed", color = "black", linewidth = 1)
 ```
 
-All the items are above .5, but we can notice 5 items below .7: AI_1_1, AI_1_7, AI_2_1, AI_2_2, AI_2_4.
+All the items are above .5, but we can notice 6 items below .7: AI_1_1, AI_1_3, AI_1_7, AI_2_1, AI_2_2, AI_2_4.
 
 Exploring the correlation of the residuals help us understand better the reason.
 
@@ -766,7 +766,7 @@ ggplot(plot_data_combined, aes(y= item, x = a, fill = Dataset)) +
         plot.title = element_text(size = 18, color = "black"))
 ```
 
-This results seem in line with the one for the full scale, with the item A_1_7 always having the lowest slope $a$.
+This results seem in line with the one for the full scale, with the item AI_1_7 always having the lowest slope $a$.
 
 # Extra
 
