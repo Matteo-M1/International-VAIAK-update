@@ -1,0 +1,838 @@
+---
+title: "First analysis AI"
+format: 
+  html:
+    toc: true # Table of content (Menu)
+    toc-depth: 3         # Level of headings 
+    toc-location: left  # Position 
+    toc-title: "Contents" # Name
+    page-layout: article
+execute:
+  echo: FALSE    
+  warning: FALSE
+  message: FALSE
+  output: TRUE
+---
+
+# To the other pages
+
+[\<- Introduction](index.html)
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(psych) # Omega
+library(lavaan) # CFA analysis
+library(mirt) # IRT analysis
+library(ggplot2)
+library(ggridges) # ridgeline plot
+library(ggcorrplot) #corrplot
+library(paletteer) # color palette
+library(flextable) # table in APA
+```
+
+```{r}
+data = read.csv("International_vaiak.csv")
+```
+
+# Introduction
+
+In the following report, I will discuss the results of the analyses carried out on the Art Interest (AI) scale of the VAIAK.
+
+The AI scale is composed by 11 items. These are either about subjective interest (e.g., I am interested in art) or behaviors (e.g., I go to visit art exhibitions). Each item is rated on a 7-point Likert scale. Items of subjective interest are rated from “not at all” (1) to “very much” (7), while behavioral items range from “less than once a year” (1) to “once a week or more often” (7). Only one scale is consider, and no subscale is measured.
+
+You can find the content of the items [here](#items).
+
+Only participants who have completed the complete scale are taken into account.
+
+# Sample
+
+```{r}
+
+data_ai = data %>%
+  filter(
+    if_any(AI_1_1:AI_2_4, ~ !is.na(.x))) %>%
+  mutate(
+    Expertise = ArtExp_Expertise_cluster) %>%
+  mutate(
+    interest_subj = rowSums(across(AI_1_1:AI_1_7)), 
+    interest_beha = rowSums(across(AI_2_1:AI_2_4)))
+
+```
+
+`r nrow(data_ai[data_ai$Dem_Age < 18, ])` participants were under the age of 18, so I excluded them.
+
+```{r}
+
+data_ai = data_ai %>%
+  filter(Dem_Age >= 18 | is.na(Dem_Age))
+
+```
+
+The final number of participants is `r nrow(data_ai)`, with an average age of `r round(mean(data_ai$Dem_Age, na.rm = T), 2)` years, $sd$ = `r round(sd(data_ai$Dem_Age, na.rm = T), 2)`. For `r nrow(data_ai[is.na(data_ai$Dem_Age),])` participants we did not have the age. For the gender the sample is composed by `r nrow(data_ai[data_ai$Dem_Gender == "Female", ])` women, `r nrow(data_ai[data_ai$Dem_Gender == "Male", ])` men and `r nrow(data_ai[data_ai$Dem_Gender == "Other", ])` people that define themselves neither as woman or man.
+
+Many participants were lay people (N = `r sum(data_ai$Expertise == "Lay person", na.rm = TRUE)`) with an important number of art experts as well (N = `r sum(data_ai$Expertise == "Expert", na.rm = TRUE)`). For the majority we do not have the expertise level (N = `r nrow(data_ai[is.na(data_ai$Expertise),])`).
+
+```{r}
+
+data_ai_score = data_ai %>%
+  count(Art_Interest, name = "n") %>%
+  filter(!is.na(Art_Interest))
+
+```
+
+The following graph represent the distribution of the score, the line is the mean (`r round(weighted.mean(data_ai_score$Art_Interest, data_ai_score$n), 2)`). The AI ranges from 11 to 77.
+
+```{r}
+
+N = sum(data_ai_score$n)                         # total number of participants
+m = weighted.mean(data_ai_score$Art_Interest, data_ai_score$n)
+
+ggplot(data_ai_score, aes(y = n, x = Art_Interest)) +
+  geom_bar(stat = "identity", width = 0.9, 
+           fill= MetBrewer::met.brewer("Veronese")[1], alpha = 0.8) +
+  theme_void() +
+  xlab("AI score") + 
+  ylab("Frequency") +
+  theme(panel.grid.major = element_line(colour = "gray70", size = 1), 
+        axis.text = element_text(size = 18, color = "black"),
+        axis.title = element_text(size = 18), 
+        axis.title.y = element_text(size = 18, angle = 90), 
+        plot.title = element_text(size = 18, color = "black"),
+        legend.position = c(0.20, 0.7),
+        legend.text = element_text(size = 14), 
+        legend.title = element_text(size = 14)) +
+  geom_vline(
+    xintercept = m,
+    linetype = "dashed", 
+    size = 1) +
+  ggtitle(sprintf("Art Interest distribution")) 
+
+```
+
+## Internal reliability
+
+```{r, results='hide', fig.show='hide'}
+omega_ai = data_ai %>%                              # Omega analysis Art Interest
+  select(starts_with("AI")) %>%
+  omega
+```
+
+McDonald's $\omega$, which is considered acceptable when above .7, was calculated and show a good internal reliability ($\omega$ = `r round(omega_ai$omega.tot, 2)`).
+
+## Confirmatory factor analysis (CFA)
+
+For the CFA, I will keep in mind that a good fit is usually judged as such when the following criteria are respected:
+
+-   CFI \> .9
+-   TLI \> .9
+-   RMSEA \< .8
+-   SRMR \< .8
+
+### One factor model
+
+The first model tested is the one factor model with the two additional residual correlations based on prior studies.
+
+![](images/Art%20interest%20model.png){fig-align="center" width="428"}
+
+```{r}
+Model_AI_one = "interest  =~ AI_1_1 + AI_1_2 + AI_1_3 + AI_1_4 + AI_1_5 + AI_1_6 + AI_1_7 +
+                       
+                           AI_2_1 + AI_2_2 + AI_2_3 + AI_2_4
+
+                           AI_1_3 ~~ AI_1_7
+                           AI_2_2 ~~ AI_2_4" 
+
+AI_onefactor = cfa(Model_AI_one, data = data_ai, std.lv=TRUE, estimator = "MLR")  # CFA with MLR
+
+table_cfa_one = fitMeasures(AI_onefactor, c(
+  "chisq",
+  "df",
+  "pvalue",
+  "cfi",
+  "tli",
+  "rmsea",
+  "rmsea.ci.lower",
+  "rmsea.ci.upper",
+  "srmr"))    # Indices
+
+table_cfa_one = as.data.frame(
+  as.list(round(as.numeric(table_cfa_one), 4)))
+
+names(table_cfa_one) = c("χ²", "df", "p", "CFI", "TLI", "RMSEA", "low RMSEA", "up RMSEA", "SRMR")
+
+# APA style table
+
+flextable(table_cfa_one) %>%
+    autofit() %>%
+  theme_apa() %>%  # APA-style formatting
+  italic(part = "header", j = c("χ²", "p")) # italics 
+```
+
+The CFI, TLI and SRMR indicate a good fit, while the RMSEA is above the mentioned criteria.
+
+Thus, I present the factor loadings ($\lambda$), which I judged keeping the general rule of thumb that a factor loading higher than .70 is excellent and above .50 is good.
+
+```{r}
+
+# Extract factor loadings, SE and p value 
+
+loadings_one = parameterEstimates(AI_onefactor, standardized = TRUE) %>%
+  filter(op == "=~") %>% # Filter only factor loadings
+  select(
+    Item = rhs,
+    Loading = std.all,
+    p = pvalue, 
+    Variance = est) %>%
+  mutate(
+    R2 = Loading^2, 
+    p = ifelse(p < .001, "< .001", as.character(round(p, 4))))
+
+# Extract mean and SD 
+
+item_names = as.character(loadings_one$Item)
+
+item_data = data_ai %>%
+  select(all_of(item_names))
+
+content = c("School classes", 
+            "Talking about art",
+            "Art interested friends", 
+            "Art interest", 
+            "Motivation for art", 
+            "Everyday art experience", 
+            "Art interested family", 
+            
+            "Museum visits", 
+            "Art books",
+            "Art  reproductions", 
+            "Art events")
+
+descriptives = data.frame(
+  Item = loadings_one$Item,
+  Content = content,
+  Mean = colMeans(item_data, na.rm = TRUE),
+  SD   = sapply(item_data, sd, na.rm = TRUE))
+
+# Unite the table
+
+table_data = descriptives %>%
+  left_join(loadings_one, by = "Item") %>%
+  mutate(across(where(is.numeric), ~ round(., 4)))
+
+# APA style table
+
+flextable(table_data) %>%
+  set_header_labels(
+    Item = "Item",
+    Content = "Content",
+    Mean = "Mean",
+    SD = "SD",
+    Loading = "λ",
+    R2 =  "R²",
+    p = "p", 
+    Variance = "Residual") %>%
+  autofit() %>%
+  theme_apa() %>%  # APA-style formatting
+  italic(part = "header", j = c("Mean", "SD", "Loading", "R2", "p")) # italics 
+```
+
+We can also visualise the factor loadings to have a clearer view of the index. The two lines represents the two thesholds above mentioned to judge the factor loadings (0.5 and 0.7)
+
+```{r}
+table_data = table_data %>%
+  arrange(desc(Loading)) %>% # to give the order
+  mutate(Item = factor(Item, levels = Item)) # for ggplot
+
+ggplot(table_data, aes(y= Item, x = Loading)) +
+  geom_col(linewidth = 1.2,
+           fill = MetBrewer::met.brewer("Veronese")[4], 
+           alpha = 0.8) +
+  xlim(0, 1) +
+  xlab("Factor loadings") + 
+  ylab("") +
+  ggtitle("Factor loadings of the AI items") +
+  theme_void() + 
+  theme(panel.grid.major = element_line(colour = "gray70"), 
+        axis.text = element_text(size = 15, color = "black"),
+        axis.title.x = element_text(size = 18, color = "black"), 
+        plot.title = element_text(size = 18, color = "black")) +
+  geom_vline(xintercept = 0.5, linetype = "dashed", color = "black", linewidth = 1) + 
+    geom_vline(xintercept = 0.7, linetype = "dashed", color = "black", linewidth = 1)
+```
+
+All the items are above .5, but we can notice 5 items below .7: AI_1_1, AI_1_7, AI_2_1, AI_2_2, AI_2_4.
+
+Exploring the correlation of the residuals help us understand better the reason.
+
+```{r}
+residuals = residuals(AI_onefactor, type = "cor") # residuals
+
+residuals = residuals$cov 
+
+residuals[lower.tri(residuals, diag = TRUE)] = NA
+
+residuals = residuals[,
+  rev(colnames(residuals))]
+
+ggcorrplot(residuals,
+           lab = TRUE, 
+           lab_size = 4,
+           tl.cex = 12,
+           digits = 2,
+           show.diag = TRUE,
+           ggtheme = theme_void,
+           hc.order = FALSE,
+           outline.color = "black", 
+           colors = c(MetBrewer::met.brewer("OKeeffe1")[c(1, 6, 10)]))  +
+  scale_fill_gradient2(
+    limits   = c(-0.3, 0.3),
+    midpoint = 0) +
+  theme(axis.text.x = element_text(size = 15, color = "black"), 
+        axis.text.y = element_text(size = 15, color = "black"), 
+        plot.title = element_text(size = 18, color = "black"))
+```
+
+We can notice that the items AI_2 have higher positive residual correlations compared to other items.
+
+### Two factors model
+
+As discussed in the prior months I proposed a different model, where the two parts of the scale are two separate factors (subjective interest and behavioural interest) with a hierarchical higher factor (art interest). This is motivated not only from theoretical discussion priorly carried out, but also on the analysis on the correlation residuals above.
+
+![](images/Art%20Interest%202%20factors.png){fig-align="center" width="337"}
+
+```{r}
+Model_AI_two = "interest_subj =~ AI_1_1 + AI_1_2 + AI_1_3 + AI_1_4 + AI_1_5 + AI_1_6 + AI_1_7
+
+                interest_beha =~ AI_2_1 + AI_2_2 + AI_2_3 + AI_2_4 
+
+                interest =~ interest_subj + interest_beha" # model
+
+AI_twofactor = cfa(Model_AI_two, data = data_ai, std.lv=TRUE, estimator = "MLR")  # CFA with MLR
+
+table_cfa_two = fitMeasures(AI_twofactor, c(
+  "chisq",
+  "df",
+  "pvalue",
+  "cfi",
+  "tli",
+  "rmsea",
+  "rmsea.ci.lower",
+  "rmsea.ci.upper",
+  "srmr"))    # Indices
+
+table_cfa_two = as.data.frame(
+  as.list(round(as.numeric(table_cfa_two), 4)))
+
+names(table_cfa_two) = c("χ²", "df", "p", "CFI", "TLI", "RMSEA", "low RMSEA", "up RMSEA", "SRMR")
+
+# APA style table
+
+flextable(table_cfa_two) %>%
+    autofit() %>%
+  theme_apa() %>%  # APA-style formatting
+  italic(part = "header", j = c("χ²", "p")) # italics 
+```
+
+The indexes all improved.
+
+I again report here the table with the indices for each item.
+
+```{r}
+
+loadings_two = parameterEstimates(AI_twofactor, standardized = TRUE) %>%
+  filter(op == "=~") %>% # Filter only factor loadings
+  select(
+    Item = rhs,
+    Loading = std.all,
+    p = pvalue, 
+    Variance = est) %>%
+  mutate(
+    R2 = Loading^2, 
+    p = ifelse(p < .001, "< .001", as.character(round(p, 4))))
+
+# Extract mean and SD 
+
+item_names = as.character(loadings_two$Item)
+
+item_data = data_ai %>%
+  select(all_of(item_names))
+
+content_two = c("School classes", 
+            "Talking about art",
+            "Art interested friends", 
+            "Art interest", 
+            "Motivation for art", 
+            "Everyday art experience", 
+            "Art interested family", 
+            
+            "Museum visits", 
+            "Art books",
+            "Art  reproductions", 
+            "Art events", 
+            
+            "Subjective Interest", 
+            "Behavioural Interest")
+
+descriptives = data.frame(
+  Item = loadings_two$Item,
+  Content = content_two,
+  Mean = colMeans(item_data, na.rm = TRUE),
+  SD   = sapply(item_data, sd, na.rm = TRUE))
+
+# Unite the table
+
+table_data_two = descriptives %>%
+  left_join(loadings_two, by = "Item") %>%
+  mutate(across(where(is.numeric), ~ round(., 4)))
+
+# APA style table
+
+flextable(table_data_two) %>%
+  set_header_labels(
+    Item = "Item",
+    Content = "Content",
+    Mean = "Mean",
+    SD = "SD",
+    Loading = "λ",
+    R2 =  "R²",
+    p = "p", 
+    Variance = "Residual") %>%
+  autofit() %>%
+  theme_apa() %>%  # APA-style formatting
+  italic(part = "header", j = c("Mean", "SD", "Loading", "R2", "p")) # italics 
+```
+
+The plot below shows the improvement of the factor loadings between the one factor and two factors model.
+
+```{r}
+table_data_combined = left_join(table_data, table_data_two, by = "Item") %>%
+  arrange(desc(Loading.x)) %>%
+  select(c("Item", "Loading.x", "Loading.y")) %>%
+  pivot_longer(
+    cols = c(Loading.x, Loading.y),
+    names_to = "Dataset")%>%
+  mutate(
+    Dataset = recode(Dataset,
+                     "Loading.x" = "One factor",
+                     "Loading.y" = "Two factors"))
+
+ggplot(table_data_combined, aes(y = reorder(Item, -value), x = value, fill = Dataset)) +
+  geom_col(
+    position = "dodge",
+    width = 0.7,
+    alpha = 0.8) +
+  scale_fill_manual(
+    values = MetBrewer::met.brewer("Veronese")[c(4, 6)]) +
+  xlim(0, 1) +
+  xlab("Factor loadings") + 
+  ylab("") +
+  ggtitle("Factor loadings of the AI items") +
+  theme_void() + 
+  theme(panel.grid.major = element_line(colour = "gray70"), 
+        axis.text.x = element_text(size = 18, color = "black"),
+        axis.text.y = element_text(size = 18, color = "black"),
+        axis.title.x = element_text(size = 18, color = "black"), 
+        plot.title = element_text(size = 18, color = "black")) + 
+  geom_vline(xintercept = 0.5, linetype = "dashed", color = "black", linewidth = 1) + 
+    geom_vline(xintercept = 0.7, linetype = "dashed", color = "black", linewidth = 1)
+```
+
+Here as well all the factor loadings have improved, with AI_1_7 and AI_1_1 still below .7.
+
+This in general make sense: Item AI_1_1 may be problematic because not everywhere they have art classes. Additionally certain classes may have art history classes (e.g., Italy) while other may have art classes where students create art. Item AI_1_7 asks how much once own family is interested in art, which as discussed elsewhere does not seem to be as strong as other items in describing the interest of the person.
+
+## Item Responce Theory (IRT)
+
+I carry out two distinctive IRT. One for the entire scale, the other with the two subfactors (interest_subjective and interest_behaviour) divided.
+
+### One factor model
+
+```{r, results='hide', fig.show='hide'}
+AI = data_ai %>% 
+  select(starts_with("AI"))
+
+AI_grm = mirt(AI, 1, itemtype = "graded") # run the model
+
+coef = coef(AI_grm, IRTpars = TRUE, simplify = TRUE) # item parameters
+```
+
+This graph represent how informative on average the items are in relation to the ability of the participants ($\theta$).
+
+```{r}
+theta = seq(-5, 5, length.out = 1000)
+
+test_info = testinfo(AI_grm, Theta = theta)/ncol(AI)
+
+df = data.frame(
+  theta = theta, 
+  information = test_info)
+
+ggplot(df, aes(x = theta, y=information)) +
+  theme_void() + 
+  theme(panel.grid.major = element_line(colour = "gray70", size = 1), 
+        axis.text = element_text(size = 18, color = "black"),
+        axis.title = element_text(size = 18), 
+        axis.title.y = element_text(size = 18, angle = 90), 
+        plot.title = element_text(size = 18, color = "black"),
+        legend.position = c(0.20, 0.7),
+        legend.text = element_text(size = 14), 
+        legend.title = element_text(size = 14), 
+        legend.background = element_rect(
+          color = "black",  
+          linetype = "solid")) +
+  ylim(0, 4) +
+  xlab("Theta") + 
+  ylab("Test Information") +
+  ggtitle("Information x ability for Art Interest") +
+  geom_line(color = MetBrewer::met.brewer("Veronese")[1], linewidth = 2)
+```
+
+We can notice that it is in general pretty normally distributed around 0, with a little skewness into the lower values. This means that it is more informative for the people with lower ability.
+
+For each item, $a$ represents the discrimination parameter, i.e. how much the value vary in relation to the ability $\theta$. A high $a$ means that the probability of answering an item correctly changes very sharply as $\theta$ increases.
+
+$b$ represents how much ability $\theta$ the participants needs to pass from a responce (e.g. 1) to the next (2). For example, in AI_1_1 a participant with an ability of least 0.08 (b5) has a 50% probability of responding 6 or higher. The higher the $b$ the more difficult it is for a participant to give that answer.
+
+```{r}
+coef_item = coef$items
+
+plot_data = data.frame(
+  item = rownames(coef_item),
+  a = coef_item[, 1]) %>%
+  arrange(desc(a)) %>% # to give the order
+  mutate(item = factor(item, levels = item)) # for ggplot
+
+table_data_irt = data.frame(
+  Item = rownames(coef_item),
+  Content = content,
+  coef_item)
+
+# APA style table
+
+flextable(table_data_irt) %>%
+  set_header_labels(
+    Item = "Item",
+    Content = "Content") %>%
+  autofit() %>%
+  theme_apa() %>%  # APA-style formatting
+  italic(part = "header", j = c("a", "b1", "b2", "b3", "b4", "b5", "b6")) # italics 
+```
+
+We can visualize the informativity of each item ($a$) also graphically.
+
+```{r}
+ggplot(plot_data, aes(y= item, x = a)) +
+  geom_col(linewidth = 1.2,
+           fill = MetBrewer::met.brewer("Veronese")[1], 
+           alpha = 0.8) +
+  xlim(0, 5) +
+  xlab("Item Discrimination") + 
+  ylab("") +
+  ggtitle("Discrimination parameter of the AI items") +
+  theme_void() + 
+  theme(panel.grid.major = element_line(colour = "gray70"), 
+        axis.text = element_text(size = 15, color = "black"),
+        axis.title.x = element_text(size = 18, color = "black"), 
+        plot.title = element_text(size = 18, color = "black"))
+```
+
+We can observe than the items already signaled before (AI_1_1 and AI_1_7) are the ones with the lower $a$. At the same time, all the items from the AI_2 are also on on the lower parts of the graph.
+
+The following graph represents the $a$ and $b$ for each item and each answer. Each box is an item and each line represents the probability to answer in a specific way (P1 probability to answer 1). The slope of the lines represent the $a$, the steeper it is, the higher $a$ is, the more efficient is the question in distinguish between individuals who know the material and those who do not.
+
+```{r}
+p = plot(AI_grm,
+         type = "trace",
+         facet_items = TRUE,
+         col = MetBrewer::met.brewer("Veronese"), # color 
+         lwd = 2, # size of the lines 
+        auto.key = list(
+          space = "right",
+          columns = 1,
+          cex = 1),
+         par.strip.text = list(cex = 1), # size of the title box 
+         par.settings = list(
+           axis.text = list(cex = 1), # axis size
+           par.main.text = list(cex = 1.4), # main title size
+           strip.background = list(col = "grey90"), # backgorund color  
+           strip.border = list(col = "black") # border around the strip 
+         ))
+
+p + latticeExtra::layer({ # add the grid 
+  panel.grid(h = -1, v = 0, col = "grey85", lty = 1)   # horizontal grid only
+  panel.abline(v = 0, col = "black", lty = 3, lwd = 1) # line at theta = 0
+}, under = TRUE)
+```
+
+### Two factors model
+
+Given that the two factors showed a better fit, I also tested an IRT by analysis the two subscales separately.
+
+```{r, results='hide', fig.show='hide'}
+AI_subj = data_ai %>% 
+  select(starts_with("AI_1"))
+
+AI_grm_subj = mirt(AI_subj, 1, itemtype = "graded") # run the model
+
+coef_subj = coef(AI_grm_subj, IRTpars = TRUE, simplify = TRUE) # item parameters
+
+coef_subj = coef_subj$items
+
+test_info_subj = testinfo(AI_grm_subj, Theta = theta)/ncol(AI_subj)
+
+df_subj = data.frame(
+  theta = theta, 
+  information = test_info_subj, 
+  Dataset = "Subjective")
+```
+
+```{r, results='hide', fig.show='hide'}
+AI_beha = data_ai %>% 
+  select(starts_with("AI_2"))
+
+AI_grm_beha = mirt(AI_beha, 1, itemtype = "graded") # run the model
+
+coef_beha = coef(AI_grm_beha, IRTpars = TRUE, simplify = TRUE) # item parameters
+
+coef_beha = coef_beha$items
+
+test_info_beha = testinfo(AI_grm_beha, Theta = theta)/ncol(AI_beha)
+
+df_beha = data.frame(
+  theta = theta, 
+  information = test_info_beha,
+  Dataset = "Behavioural")
+```
+
+```{r, results='hide', fig.show='hide'}
+df_combined = bind_rows(
+  df_subj,
+  df_beha)
+```
+
+```{r}
+
+ggplot(df_combined, aes(x = theta, 
+                        y=information, 
+                        color = Dataset)) +
+  geom_line(linewidth = 2) + 
+  scale_color_manual(values = MetBrewer::met.brewer("Veronese")[c(2, 4)]) +
+  theme_void() + 
+  theme(panel.grid.major = element_line(colour = "gray70", size = 1), 
+        axis.text = element_text(size = 18, color = "black"),
+        axis.title = element_text(size = 18), 
+        axis.title.y = element_text(size = 18, angle = 90), 
+        plot.title = element_text(size = 18, color = "black"),
+        legend.position = "bottom",
+        legend.text = element_text(size = 14), 
+        legend.title = element_text(size = 14), 
+        legend.background = element_rect(
+          color = "black",  
+          linetype = "solid")) +
+  ylim(0, 4) +
+  xlab("Theta") + 
+  ylab("Test Information") 
+```
+
+The behavioural scale seems to be more informative for the participants with a greater interest.
+
+We can see in the following table the new indices for each items divided into two scales: subjective interest
+
+```{r}
+
+table_data_irt = data.frame(
+  Item = rownames(coef_subj),
+  Content = content[1:7],
+  coef_subj)
+
+# APA style table
+
+flextable(table_data_irt) %>%
+  set_header_labels(
+    Item = "Item",
+    Content = "Content") %>%
+  autofit() %>%
+  theme_apa() %>%  # APA-style formatting
+  italic(part = "header", j = c("a", "b1", "b2", "b3", "b4", "b5", "b6")) # italics 
+```
+
+```{r}
+p = plot(AI_grm_subj,
+         type = "trace",
+         facet_items = TRUE,
+         col = MetBrewer::met.brewer("Veronese"), # color 
+         lwd = 2, # size of the lines 
+        auto.key = list(
+          space = "right",
+          columns = 1,
+          cex = 1),
+         par.strip.text = list(cex = 1), # size of the title box 
+         par.settings = list(
+           axis.text = list(cex = 1), # axis size
+           par.main.text = list(cex = 1.4), # main title size
+           strip.background = list(col = "grey90"), # backgorund color  
+           strip.border = list(col = "black") # border around the strip 
+         ))
+
+p + latticeExtra::layer({ # add the grid 
+  panel.grid(h = -1, v = 0, col = "grey85", lty = 1)   # horizontal grid only
+  panel.abline(v = 0, col = "black", lty = 3, lwd = 1) # line at theta = 0
+}, under = TRUE)
+```
+
+and behaviorual interest
+
+```{r}
+
+table_data_irt = data.frame(
+  Item = rownames(coef_beha),
+  Content = content[8:11],
+  coef_beha)
+
+# APA style table
+
+flextable(table_data_irt) %>%
+  set_header_labels(
+    Item = "Item",
+    Content = "Content") %>%
+  autofit() %>%
+  theme_apa() %>%  # APA-style formatting
+  italic(part = "header", j = c("a", "b1", "b2", "b3", "b4", "b5", "b6")) # italics 
+```
+
+```{r}
+p = plot(AI_grm_beha,
+         type = "trace",
+         facet_items = TRUE,
+         col = MetBrewer::met.brewer("Veronese"), # color 
+         lwd = 2, # size of the lines 
+        auto.key = list(
+          space = "right",
+          columns = 1,
+          cex = 1),
+         par.strip.text = list(cex = 1), # size of the title box 
+         par.settings = list(
+           axis.text = list(cex = 1), # axis size
+           par.main.text = list(cex = 1.4), # main title size
+           strip.background = list(col = "grey90"), # backgorund color  
+           strip.border = list(col = "black") # border around the strip 
+         ))
+
+p + latticeExtra::layer({ # add the grid 
+  panel.grid(h = -1, v = 0, col = "grey85", lty = 1)   # horizontal grid only
+  panel.abline(v = 0, col = "black", lty = 3, lwd = 1) # line at theta = 0
+}, under = TRUE)
+```
+
+We can also visualise the improvement of $a$ by comparing the index in the one factor model and the two factors model.
+
+```{r}
+
+coef_combined = rbind(coef_subj, coef_beha)
+
+plot_data_two = data.frame(
+  item = rownames(coef_combined),
+  a = coef_combined[, 1]) %>%
+  arrange(desc(a)) %>% # to give the order
+  mutate(item = factor(item, levels = item)) # for ggplot
+
+plot_data_combined = left_join(plot_data, plot_data_two, by = "item") %>%
+  pivot_longer(
+    cols = c(a.x, a.y),
+    names_to = "Dataset",
+    values_to = "a")%>%
+  mutate(
+    Dataset = recode(Dataset,
+                     "a.x" = "One factor",
+                     "a.y" = "Two factors"))
+
+ggplot(plot_data_combined, aes(y= item, x = a, fill = Dataset)) +
+  geom_col(
+    position = "dodge",
+    width = 0.7,
+    alpha = 0.8) +
+  scale_fill_manual(
+    values = MetBrewer::met.brewer("Veronese")[c(1, 3)]) +
+  xlim(0, 5) +
+  xlab("Item Discrimination") + 
+  ylab("") +
+  ggtitle("Discrimination parameter of the AI items") +
+  theme_void() + 
+  theme(panel.grid.major = element_line(colour = "gray70"), 
+        axis.text.x = element_text(size = 18, color = "black"),
+        axis.text.y = element_text(size = 18, color = "black"),
+        axis.title.x = element_text(size = 18, color = "black"), 
+        plot.title = element_text(size = 18, color = "black"))
+```
+
+This results seem in line with the one for the full scale, with the item A_1_7 always having the lowest slope $a$.
+
+# Extra
+
+## Items {#items}
+
+Answers from 1 (Not at all) to 7 (Very Much)
+
+-   AI_1_1 : I enjoyed visiting art classes as a subject in school
+-   AI_1_2 : I enjoy talking about art with others
+-   AI_1_3 : I have many friends/acquaintances who are interested in art
+-   AI_1_4 : I am interested in art
+-   AI_1_5 : I am always looking for new artistic impressions and experiences
+-   AI_1_6 : During my everyday life I spontaneously notice art objects that I find fascinating
+-   AI_1_7 : I come from a family that is interested in art
+
+Answers from 1 (less than once per year) to 7 (once per week or more often)
+
+-   AI_2_1 : How often do you visit art museums or art galleries on average?
+-   AI_2_2 : How often do you read books, magazines or catalogues about art?
+-   AI_2_3 : How often do you view images of artworks (picture books, internet, etc.)?
+-   AI_2_4 : How often do you visit events about art or art history (seminars, projects, festivals, etc.)?
+
+## Answers frequency
+
+```{r}
+barplot(table(data_ai$AI_1_1)/
+                    nrow(data_ai), 
+        main = "AI_1_1")
+
+barplot(table(data_ai$AI_1_2)/
+                    nrow(data_ai), 
+        main = "AI_1_2")
+
+barplot(table(data_ai$AI_1_3)/
+                    nrow(data_ai), 
+        main = "AI_1_3")
+
+barplot(table(data_ai$AI_1_4)/
+                    nrow(data_ai), 
+        main = "AI_1_4")
+
+barplot(table(data_ai$AI_1_5)/
+                    nrow(data_ai), 
+        main = "AI_1_5")
+
+barplot(table(data_ai$AI_1_6)/
+                    nrow(data_ai), 
+        main = "AI_1_6")
+
+barplot(table(data_ai$AI_1_7)/
+                    nrow(data_ai), 
+        main = "AI_1_7")
+
+barplot(table(data_ai$AI_2_1)/
+                    nrow(data_ai), 
+        main = "AI_2_1")
+
+barplot(table(data_ai$AI_2_2)/
+                    nrow(data_ai), 
+        main = "AI_2_2")
+
+barplot(table(data_ai$AI_2_3)/
+                    nrow(data_ai), 
+        main = "AI_2_3")
+
+barplot(table(data_ai$AI_2_4)/
+                    nrow(data_ai), 
+        main = "AI_2_4")
+```

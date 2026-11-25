@@ -16,7 +16,7 @@ execute:
 
 # To the other pages
 
-[AI analysis ->](First_analysis_AI.html)
+[AI analysis -\>](Analysis_AI.html)
 
 ```{r}
 library(dplyr)
@@ -66,7 +66,7 @@ data_ai = data %>%
 
 ## General analysis
 
-The total number of entries is 15,383 For the total sample I plan these first analysis:
+The total number of entries is `r nrow(data_ai)` For the total sample I plan these first analysis:
 
 -   Internal consistency with McDonald omega
 
@@ -76,9 +76,9 @@ The total number of entries is 15,383 For the total sample I plan these first an
 
     ![](images/Art%20interest%20model.png){width="50%"}
 
--   IRT, adopting a graded response model (GRM). I would also be interested in checking how much the latent construct classically measure and the one where each item is weighted differently based on the difficulties, like it is done in Gross et al., (2019). 
+-   IRT, adopting a graded response model (GRM). I would also be interested in checking how much the latent construct classically measure and the one where each item is weighted differently based on the difficulties, like it is done in Gross et al., (2019).
 
-Subsequentially, I plan to usecarry out multigroup CFA. 
+Subsequentially, I plan to usecarry out multigroup CFA.
 
 ## Multigroup analysis
 
@@ -166,7 +166,7 @@ girafe(ggobj = graph_ai)
 
 ### Country of origin
 
-As can be seen, there are many countries that do not reach an adequate number of participants for the analysis. 
+As can be seen, there are many countries that do not reach an adequate number of participants for the analysis.
 
 ```{r}
 
@@ -279,11 +279,9 @@ interactive_plot = girafe_options(
 interactive_plot
 ```
 
-So I cluster the countries based on the UN M49 sub-regions. I kept separated the countries that had at least 200 participants, which is the general rule of thumb minimum for the CFA. 
-I would keep this rule and consider only the group with at least 200 participants. I do not want to create groups geographically too big (e.g., the all Africa), because I do not think that would make sense to consider it as an entire group. 
+So I cluster the countries based on the UN M49 sub-regions. I kept separated the countries that had at least 200 participants, which is the general rule of thumb minimum for the CFA. I would keep this rule and consider only the group with at least 200 participants. I do not want to create groups geographically too big (e.g., the all Africa), because I do not think that would make sense to consider it as an entire group.
 
-I wanted to ask if to create this cluster would make sense to carry out an analysis to check if the countries can be grouped together. The only one that I can think of is the CFA, but that would defeat the purpose of the grouping. 
-
+I wanted to ask if to create this cluster would make sense to carry out an analysis to check if the countries can be grouped together. The only one that I can think of is the CFA, but that would defeat the purpose of the grouping.
 
 ```{r}
 
@@ -383,13 +381,13 @@ data_ak = data %>%
 
 ## General analysis
 
-The total number fo entries is 6,751. For the total sample I plan the same analysis as above, with some changes: 
+The total number fo entries is `r nrow(data_ak)`. For the total sample I plan the same analysis as above, with some changes:
 
 -   McDonald omega
 
 -   CFA, given that we are talking about a scale where each can be right (1) or wrong (0) I would adopt the WLSMV as an estimator.
 
--   IRT, the probability to correctly answers in part B and C differ. In part B I think is best to use a 3 parameters model (3PL), where I can keep into consideration that participant can guess the correct answers (1 in 4 possibilities). In part C will use the 2-parameters model (2PL). In the prior validation it was notice that, across all items, participants often tried to guess the answer the name of artist, by writing famous artists name (e.g., Picasso, Leonardo da Vinci, etc.). In particular a list of 7 artists was created. I think a deeper analysis that keep into consideration this aspect may be interesting, although I am not sure how to implement it. 
+-   IRT, the probability to correctly answers in part B and C differ. In part B I think is best to use a 3 parameters model (3PL), where I can keep into consideration that participant can guess the correct answers (1 in 4 possibilities). In part C will use the 2-parameters model (2PL). In the prior validation it was notice that, across all items, participants often tried to guess the answer the name of artist, by writing famous artists name (e.g., Picasso, Leonardo da Vinci, etc.). In particular a list of 7 artists was created. I think a deeper analysis that keep into consideration this aspect may be interesting, although I am not sure how to implement it.
 
 ## Multigroup analysis
 
@@ -424,7 +422,7 @@ girafe(ggobj = graph_ak)
 
 ### Settings
 
-For the settings I would like to study in greater detail whether the VAIAK done online was "easier". This is because by seeing certain results on Prolific I believe that people cheat, by checking the correct answers online. This is particular evident in item such as the  Giotto's fresco, one with, which is one of the hardest, which sometimes is answered with the full name "Giotto di Bondone", which is very unsual. Personally I would explore the frequency of presence of this specific answers (written in that specific way) in the Online vs Museum/lab studies to see if it is more common. Maybe it could also be helpful to check if the difficulties of the hardest items differ using the IRT. 
+For the settings I would like to study in greater detail whether the VAIAK done online was "easier". This is because by seeing certain results on Prolific I believe that people cheat, by checking the correct answers online. This is particular evident in item such as the Giotto's fresco, one with, which is one of the hardest, which sometimes is answered with the full name "Giotto di Bondone", which is very unsual. Personally I would explore the frequency of presence of this specific answers (written in that specific way) in the Online vs Museum/lab studies to see if it is more common. Maybe it could also be helpful to check if the difficulties of the hardest items differ using the IRT.
 
 ```{r}
 
