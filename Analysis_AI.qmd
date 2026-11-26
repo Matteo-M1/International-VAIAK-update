@@ -411,13 +411,13 @@ table_data_combined = left_join(table_data, table_data_two, by = "Item") %>%
   select(c("Item", "Loading.x", "Loading.y")) %>%
   pivot_longer(
     cols = c(Loading.x, Loading.y),
-    names_to = "Dataset")%>%
+    names_to = "Model")%>%
   mutate(
-    Dataset = recode(Dataset,
+    Model = recode(Model,
                      "Loading.x" = "One factor",
                      "Loading.y" = "Two factors"))
 
-ggplot(table_data_combined, aes(y = reorder(Item, -value), x = value, fill = Dataset)) +
+ggplot(table_data_combined, aes(y = reorder(Item, -value), x = value, fill = Model)) +
   geom_col(
     position = "dodge",
     width = 0.7,
@@ -438,7 +438,7 @@ ggplot(table_data_combined, aes(y = reorder(Item, -value), x = value, fill = Dat
     geom_vline(xintercept = 0.7, linetype = "dashed", color = "black", linewidth = 1)
 ```
 
-Here as well all the factor loadings have improved, with AI_1_7 and AI_1_1 still below .7.
+Here as well all the factor loadings have improved, with AI_1_7, AI_1_3 and AI_1_1 still below .7.
 
 This in general make sense: Item AI_1_1 may be problematic because not everywhere they have art classes. Additionally certain classes may have art history classes (e.g., Italy) while other may have art classes where students create art. Item AI_1_7 asks how much once own family is interested in art, which as discussed elsewhere does not seem to be as strong as other items in describing the interest of the person.
 
@@ -584,7 +584,7 @@ test_info_subj = testinfo(AI_grm_subj, Theta = theta)/ncol(AI_subj)
 df_subj = data.frame(
   theta = theta, 
   information = test_info_subj, 
-  Dataset = "Subjective")
+  Scale = "Subjective")
 ```
 
 ```{r, results='hide', fig.show='hide'}
@@ -602,7 +602,7 @@ test_info_beha = testinfo(AI_grm_beha, Theta = theta)/ncol(AI_beha)
 df_beha = data.frame(
   theta = theta, 
   information = test_info_beha,
-  Dataset = "Behavioural")
+  Scale = "Behavioural")
 ```
 
 ```{r, results='hide', fig.show='hide'}
@@ -615,7 +615,7 @@ df_combined = bind_rows(
 
 ggplot(df_combined, aes(x = theta, 
                         y=information, 
-                        color = Dataset)) +
+                        color = Scale)) +
   geom_line(linewidth = 2) + 
   scale_color_manual(values = MetBrewer::met.brewer("Veronese")[c(2, 4)]) +
   theme_void() + 
@@ -740,14 +740,14 @@ plot_data_two = data.frame(
 plot_data_combined = left_join(plot_data, plot_data_two, by = "item") %>%
   pivot_longer(
     cols = c(a.x, a.y),
-    names_to = "Dataset",
+    names_to = "Model",
     values_to = "a")%>%
   mutate(
-    Dataset = recode(Dataset,
+    Model = recode(Model,
                      "a.x" = "One factor",
                      "a.y" = "Two factors"))
 
-ggplot(plot_data_combined, aes(y= item, x = a, fill = Dataset)) +
+ggplot(plot_data_combined, aes(y= item, x = a, fill = Model)) +
   geom_col(
     position = "dodge",
     width = 0.7,
